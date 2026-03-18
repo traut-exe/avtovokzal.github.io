@@ -765,7 +765,7 @@
     </style>
 </head>
 <body>
-    
+
     <div class="game-container">
         <div class="header">
             <h2>ЕЖЕДНЕВНЫЕ</h2>
@@ -1179,6 +1179,16 @@ actions.forEach(action => {
 // Сохраняем перед уходом
 window.addEventListener('beforeunload', saveProgress);
 </script>
+
+<!-- Подключение системы авторизации -->
 <script src="auth-system.js"></script>
+
+<script>
+// Сохранение прогресса при кликах и действиях
+document.addEventListener('click', function() {
+    setTimeout(window.saveGameProgress, 100);
+});
+</script>
+
 </body>
 </html>
