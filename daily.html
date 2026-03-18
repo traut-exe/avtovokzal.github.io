@@ -1206,5 +1206,24 @@ setInterval(() => {
 }, 1000);
 </script>
 
+<!-- Подключение системы авторизации -->
+<script src="auth-system.js"></script>
+
+<script>
+// Принудительно создаем панель пользователя
+window.addEventListener('load', function() {
+    if (window.userSystem) {
+        setTimeout(() => {
+            window.userSystem.createUserBar();
+        }, 100);
+    }
+});
+
+// Сохранение прогресса при кликах
+document.addEventListener('click', function() {
+    setTimeout(window.saveGameProgress, 100);
+});
+</script>
+
 </body>
 </html>

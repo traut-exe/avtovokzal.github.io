@@ -66,7 +66,7 @@
         }
         
         .profile-container {
-            max-width: 1000px;
+            max-width: 600px;
             margin: 90px auto 30px;
             padding: 0 15px;
         }
@@ -81,23 +81,23 @@
         
         .avatar-section {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: clamp(15px, 4vw, 40px);
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 20px;
         }
         
         .avatar-large {
-            width: min(150px, 30vw);
-            height: min(150px, 30vw);
+            width: min(200px, 50vw);
+            height: min(200px, 50vw);
             border-radius: 50%;
             background: #2a2a2a;
             border: 5px solid #ffd700;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: min(80px, 15vw);
+            font-size: min(80px, 20vw);
             overflow: hidden;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
         }
         
         .avatar-large img {
@@ -107,13 +107,12 @@
         }
         
         .user-info {
-            flex: 1;
-            min-width: 200px;
             text-align: center;
+            width: 100%;
         }
         
         .user-name {
-            font-size: clamp(24px, 6vw, 48px);
+            font-size: clamp(28px, 6vw, 48px);
             font-weight: 900;
             color: #ffd700;
             margin-bottom: 5px;
@@ -121,9 +120,9 @@
         }
         
         .user-login {
-            font-size: clamp(14px, 3vw, 20px);
+            font-size: clamp(16px, 3vw, 20px);
             color: #666;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             font-family: monospace;
         }
         
@@ -166,81 +165,58 @@
         
         .stat-value {
             color: #ffd700;
-            font-size: clamp(24px, 5vw, 48px);
+            font-size: clamp(28px, 5vw, 48px);
             font-weight: 900;
         }
         
-        .avatars-section {
+        .upload-section {
             background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
             border-radius: 30px;
-            padding: clamp(15px, 4vw, 30px);
+            padding: clamp(20px, 4vw, 30px);
             margin-top: 20px;
             border: 2px solid #333;
-        }
-        
-        .avatars-title {
-            font-size: clamp(18px, 4vw, 24px);
-            color: #ffd700;
-            margin-bottom: 20px;
             text-align: center;
         }
         
-        .avatars-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            gap: 10px;
+        .upload-title {
+            font-size: clamp(18px, 4vw, 24px);
+            color: #ffd700;
             margin-bottom: 20px;
-        }
-        
-        .avatar-option {
-            aspect-ratio: 1;
-            background: #2a2a2a;
-            border: 3px solid #444;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(20px, 4vw, 40px);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .avatar-option:hover {
-            border-color: #ffd700;
-            transform: scale(1.1);
-        }
-        
-        .avatar-option.selected {
-            border-color: #ffd700;
-            box-shadow: 0 0 30px #ffd700;
         }
         
         .upload-btn {
             background: #3a3a3a;
             border: 2px solid #666;
             border-radius: 40px;
-            padding: 15px;
+            padding: 18px;
             width: 100%;
             color: white;
             font-weight: 700;
-            font-size: clamp(14px, 3vw, 18px);
+            font-size: clamp(16px, 4vw, 20px);
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 20px;
+            margin-bottom: 15px;
         }
         
         .upload-btn:hover {
             background: #4a4a4a;
             border-color: #ffd700;
+            transform: scale(1.02);
+        }
+        
+        .upload-hint {
+            color: #666;
+            font-size: clamp(12px, 2.5vw, 14px);
+            margin-top: 10px;
         }
         
         .logout-btn {
             background: #4a2a2a;
             border: 3px solid #8b0000;
             border-radius: 60px;
-            padding: 15px;
+            padding: 18px;
             width: 100%;
-            font-size: clamp(16px, 4vw, 20px);
+            font-size: clamp(18px, 4vw, 22px);
             font-weight: 900;
             color: #ffaaaa;
             cursor: pointer;
@@ -252,6 +228,7 @@
             background: #6a2a2a;
             border-color: #ff0000;
             color: white;
+            transform: translateY(-2px);
         }
         
         .error-message {
@@ -312,22 +289,21 @@
             }
             
             const stats = user.stats || {};
+            const balance = Math.floor(Number(stats.balance) || 500);
             
             container.innerHTML = `
                 <div class="profile-header">
                     <div class="avatar-section">
                         <div class="avatar-large" id="currentAvatar">
                             ${user.avatar ? 
-                                (user.avatar.startsWith('data:') ? 
-                                    `<img src="${user.avatar}">` : 
-                                    `<div style="font-size: inherit;">${user.avatar}</div>`) 
-                                : '👤'}
+                                `<img src="${user.avatar}" alt="avatar">` : 
+                                '<div style="font-size: 80px;">👤</div>'}
                         </div>
                         <div class="user-info">
                             <div class="user-name">${escapeHtml(user.username)}</div>
                             <div class="user-login">@${escapeHtml(user.login)}</div>
                             <div class="user-joined">
-                                Присоединился: ${new Date().toLocaleDateString('ru-RU')}
+                                Присоединился: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU')}
                             </div>
                         </div>
                     </div>
@@ -337,7 +313,7 @@
                     <div class="stat-card">
                         <div class="stat-icon">💰</div>
                         <div class="stat-label">Монеты</div>
-                        <div class="stat-value">${Math.floor(stats.balance || 500)}</div>
+                        <div class="stat-value">${balance}</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">🔄</div>
@@ -351,18 +327,20 @@
                     </div>
                 </div>
                 
-                <div class="avatars-section">
-                    <div class="avatars-title">🎭 ВЫБЕРИ АВАТАР</div>
-                    <div class="avatars-grid" id="avatarsGrid"></div>
+                <div class="upload-section">
+                    <div class="upload-title">📸 ФОТО ПРОФИЛЯ</div>
                     <button class="upload-btn" id="uploadAvatarBtn">
-                        📁 ЗАГРУЗИТЬ СВОЁ ФОТО
+                        📁 ЗАГРУЗИТЬ ФОТО
                     </button>
+                    <div class="upload-hint">
+                        Поддерживаются JPG, PNG, GIF до 5MB
+                    </div>
                 </div>
                 
-                <button class="logout-btn" id="logoutBtn">🚪 ВЫЙТИ ИЗ АККАУНТА</button>
+                <button class="logout-btn" id="logoutBtn">
+                    🚪 ВЫЙТИ ИЗ АККАУНТА
+                </button>
             `;
-            
-            loadAvatars(user.avatar);
             
             document.getElementById('logoutBtn')?.addEventListener('click', () => {
                 if (confirm('Точно выйти?')) {
@@ -375,22 +353,6 @@
             });
         }
         
-        function loadAvatars(selected) {
-            const avatars = ['👨', '👩', '👨‍🦰', '👩‍🦰', '👴', '👵', '🧔', '🧑', '👨‍🦳', '👩‍🦳'];
-            const grid = document.getElementById('avatarsGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = avatars.map(a => {
-                const isSelected = a === selected || (typeof selected === 'string' && !selected.startsWith('data:') && a === selected);
-                return `
-                    <div class="avatar-option ${isSelected ? 'selected' : ''}" 
-                         onclick="window.userSystem.changeAvatar('${a}'); loadProfile();">
-                        ${a}
-                    </div>
-                `;
-            }).join('');
-        }
-        
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -401,15 +363,30 @@
         // Обработка загрузки файла
         document.getElementById('fileInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (file) {
-                try {
-                    await window.userSystem.uploadAvatar(file);
-                    loadProfile();
-                    alert('✅ Аватар успешно загружен!');
-                } catch (error) {
-                    alert('❌ Ошибка загрузки аватара');
-                }
+            if (!file) return;
+            
+            // Проверка размера (5MB максимум)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ Файл слишком большой! Максимум 5MB');
+                return;
             }
+            
+            // Проверка типа файла
+            if (!file.type.startsWith('image/')) {
+                alert('❌ Можно загружать только изображения');
+                return;
+            }
+            
+            try {
+                await window.userSystem.uploadAvatar(file);
+                loadProfile(); // Перезагружаем профиль
+                alert('✅ Аватар успешно загружен!');
+            } catch (error) {
+                alert('❌ Ошибка загрузки: ' + error);
+            }
+            
+            // Очищаем input
+            e.target.value = '';
         });
         
         // Загружаем профиль и обновляем каждую секунду

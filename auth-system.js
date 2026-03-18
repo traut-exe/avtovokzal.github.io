@@ -31,9 +31,12 @@ class UserSystem {
             const savedUser = localStorage.getItem('vokzalCurrentUser');
             if (savedUser) {
                 this.currentUser = JSON.parse(savedUser);
-                // Округляем баланс до целого числа
+                // Принудительно округляем баланс
                 if (this.currentUser.stats) {
-                    this.currentUser.stats.balance = Math.floor(this.currentUser.stats.balance || 500);
+                    this.currentUser.stats.balance = Math.floor(Number(this.currentUser.stats.balance) || 500);
+                }
+                if (this.currentUser.gameData) {
+                    this.currentUser.gameData.balance = Math.floor(Number(this.currentUser.gameData.balance) || 500);
                 }
             }
         } catch (e) {
@@ -67,15 +70,17 @@ class UserSystem {
             if (gameDataStr) {
                 const gameData = JSON.parse(gameDataStr);
                 
+                // Округляем баланс
+                if (gameData.balance !== undefined) {
+                    gameData.balance = Math.floor(Number(gameData.balance));
+                }
+                
                 // Обновляем данные пользователя
                 const user = this.users[this.currentUser.login];
                 if (user) {
-                    // Округляем баланс
-                    if (gameData.balance) gameData.balance = Math.floor(gameData.balance);
-                    
                     user.gameData = gameData;
                     user.stats = { ...user.stats, ...gameData };
-                    user.stats.balance = Math.floor(user.stats.balance || 500);
+                    user.stats.balance = Math.floor(Number(user.stats.balance) || 500);
                     
                     this.saveUsers();
                     
@@ -96,7 +101,10 @@ class UserSystem {
     // Обновление панели пользователя
     updateUserBar() {
         const userInfo = document.getElementById('userInfo');
-        if (userInfo && this.currentUser) {
+        if (!userInfo) return;
+        
+        if (this.currentUser) {
+            const balance = Math.floor(Number(this.currentUser.stats?.balance) || 500);
             userInfo.innerHTML = `
                 <div style="
                     width: 45px;
@@ -107,23 +115,21 @@ class UserSystem {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 24px;
+                    font-size: 20px;
                     overflow: hidden;
                 ">
                     ${this.currentUser.avatar ? 
-                        (this.currentUser.avatar.startsWith('data:') ? 
-                            `<img src="${this.currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : 
-                            this.currentUser.avatar) 
-                        : '👤'}
+                        `<img src="${this.currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : 
+                        '👤'}
                 </div>
                 <div style="color: white; font-weight: 700; font-size: 16px; white-space: nowrap;">
                     ${this.currentUser.username}
                 </div>
                 <div style="color: #ffd700; font-weight: 900; font-size: 18px; white-space: nowrap;">
-                    ${Math.floor(this.currentUser.stats?.balance || 500)}💰
+                    ${balance}💰
                 </div>
             `;
-        } else if (userInfo) {
+        } else {
             userInfo.innerHTML = `
                 <div style="
                     width: 45px;
@@ -134,7 +140,7 @@ class UserSystem {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 24px;
+                    font-size: 20px;
                 ">👤</div>
                 <div style="color: #999999; font-size: 16px; white-space: nowrap;">Гость</div>
                 <div style="color: #ffd700; font-size: 16px; white-space: nowrap;">🔑 Войти</div>
@@ -198,7 +204,7 @@ class UserSystem {
             white-space: nowrap;
         `;
 
-        // Обновляем информацию
+        // Устанавливаем начальное содержимое
         this.updateUserBar();
 
         userInfo.addEventListener('mouseenter', () => {
@@ -543,53 +549,28 @@ class UserSystem {
             return { success: false, message: '❌ Пользователь с таким логином уже существует' };
         }
 
-        // Аватар по умолчанию
-        const defaultAvatar = '👤';
-
         const newUser = {
             username: username,
             login: login,
             password: this.hashPassword(password),
-            avatar: defaultAvatar,
+            avatar: null,
             registeredAt: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
             stats: {
                 balance: 500,
                 rebornLevel: 0,
-                playerLevel: 1,
-                totalClicks: 0,
-                totalPurchases: 0,
-                totalEarned: 500,
-                foodPurchased: 0
+                playerLevel: 1
             },
             gameData: {
                 balance: 500,
                 rebornLevel: 0,
                 playerLevel: 1,
-                totalClicks: 0,
-                totalPurchases: 0,
-                totalEarned: 500,
-                foodPurchased: 0,
                 belyashCount: 0,
                 samsaCount: 0,
                 cheburekCount: 0,
                 seedCount: 0,
                 activeBoosts: [],
                 currentExp: 0
-            },
-            dailyTasks: {
-                lastReset: new Date().toDateString(),
-                tasks: {
-                    task1: { progress: 0, completed: false, claimed: false },
-                    task2: { progress: 0, completed: false, claimed: false },
-                    task3: { progress: 0, completed: false, claimed: false },
-                    task4: { progress: 0, completed: false, claimed: false }
-                },
-                streak: {
-                    count: 1,
-                    lastLogin: new Date().toDateString(),
-                    bonusClaimed: false
-                }
             }
         };
 
@@ -610,7 +591,6 @@ class UserSystem {
         }
 
         user.lastLogin = new Date().toISOString();
-        this.updateStreak(user);
         
         this.users[login] = user;
         this.saveUsers();
@@ -648,50 +628,22 @@ class UserSystem {
         return hash.toString(36);
     }
 
-    updateStreak(user) {
-        if (!user.dailyTasks) return;
-        
-        const today = new Date().toDateString();
-        const lastLogin = user.dailyTasks?.streak?.lastLogin;
-
-        if (lastLogin !== today) {
-            if (lastLogin) {
-                const lastDate = new Date(lastLogin);
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                
-                if (lastDate.toDateString() === yesterday.toDateString()) {
-                    user.dailyTasks.streak.count = Math.min((user.dailyTasks.streak.count || 0) + 1, 7);
-                } else {
-                    user.dailyTasks.streak.count = 1;
-                }
-            } else {
-                user.dailyTasks.streak.count = 1;
-            }
-            
-            user.dailyTasks.streak.lastLogin = today;
-            user.dailyTasks.streak.bonusClaimed = false;
-        }
-    }
-
     saveGameDataToUser() {
         if (!this.currentUser) return;
 
         try {
             const gameDataStr = localStorage.getItem('vokzalGameData');
             const gameData = gameDataStr ? JSON.parse(gameDataStr) : {};
-            
-            const dailyDataStr = localStorage.getItem('dailyTasksData');
-            const dailyData = dailyDataStr ? JSON.parse(dailyDataStr) : {};
 
             const user = this.users[this.currentUser.login];
             if (user) {
                 // Округляем баланс
-                if (gameData.balance) gameData.balance = Math.floor(gameData.balance);
+                if (gameData.balance !== undefined) {
+                    gameData.balance = Math.floor(Number(gameData.balance));
+                }
                 
                 user.stats = { ...user.stats, ...gameData };
                 user.gameData = gameData;
-                user.dailyTasks = dailyData;
                 
                 this.saveUsers();
             }
@@ -707,7 +659,6 @@ class UserSystem {
             const user = this.users[this.currentUser.login];
             if (user) {
                 localStorage.setItem('vokzalGameData', JSON.stringify(user.gameData));
-                localStorage.setItem('dailyTasksData', JSON.stringify(user.dailyTasks));
                 
                 this.currentUser.stats = user.stats;
                 this.currentUser.gameData = user.gameData;
@@ -724,7 +675,9 @@ class UserSystem {
             const user = this.users[this.currentUser.login];
             if (user) {
                 // Округляем баланс
-                if (newData.balance) newData.balance = Math.floor(newData.balance);
+                if (newData.balance !== undefined) {
+                    newData.balance = Math.floor(Number(newData.balance));
+                }
                 
                 user.gameData = { ...user.gameData, ...newData };
                 user.stats = { ...user.stats, ...newData };
@@ -743,39 +696,36 @@ class UserSystem {
         }
     }
 
-    changeAvatar(avatar) {
-        if (!this.currentUser) return false;
-
-        try {
-            const user = this.users[this.currentUser.login];
-            if (user) {
-                user.avatar = avatar;
-                this.currentUser.avatar = avatar;
-                
-                this.saveUsers();
-                localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
-                
-                // Обновляем отображение
-                this.updateUserBar();
-                
-                return true;
-            }
-        } catch (e) {
-            console.error('Ошибка смены аватара:', e);
-        }
-        return false;
-    }
-
     // Загрузка картинки из памяти
     uploadAvatar(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const imageData = e.target.result;
-                if (this.changeAvatar(imageData)) {
-                    resolve(imageData);
-                } else {
-                    reject('Ошибка сохранения аватара');
+                
+                if (!this.currentUser) {
+                    reject('Пользователь не авторизован');
+                    return;
+                }
+
+                try {
+                    const user = this.users[this.currentUser.login];
+                    if (user) {
+                        user.avatar = imageData;
+                        this.currentUser.avatar = imageData;
+                        
+                        this.saveUsers();
+                        localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
+                        
+                        // Обновляем отображение
+                        this.updateUserBar();
+                        
+                        resolve(imageData);
+                    } else {
+                        reject('Пользователь не найден');
+                    }
+                } catch (e) {
+                    reject('Ошибка сохранения: ' + e.message);
                 }
             };
             reader.onerror = () => reject('Ошибка чтения файла');
@@ -793,7 +743,9 @@ window.saveGameProgress = function() {
         try {
             const gameDataStr = localStorage.getItem('vokzalGameData');
             const gameData = gameDataStr ? JSON.parse(gameDataStr) : {};
-            if (gameData.balance) gameData.balance = Math.floor(gameData.balance);
+            if (gameData.balance !== undefined) {
+                gameData.balance = Math.floor(Number(gameData.balance));
+            }
             window.userSystem.updateGameData(gameData);
         } catch (e) {
             console.error('Ошибка сохранения прогресса:', e);

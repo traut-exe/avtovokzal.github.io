@@ -1671,13 +1671,6 @@ window.addEventListener('load', function() {
 document.addEventListener('click', function() {
     setTimeout(window.saveGameProgress, 100);
 });
-
-// Обновление баланса в реальном времени
-setInterval(() => {
-    if (window.userSystem) {
-        window.userSystem.syncWithGameData();
-    }
-}, 1000);
 </script>
 
 </body>
