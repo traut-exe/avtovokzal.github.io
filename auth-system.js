@@ -172,7 +172,7 @@ class UserSystem {
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         `;
 
-        // Левая часть - логотип
+        // Левая часть - логотип (КЛИКАБЕЛЬНЫЙ!)
         const logo = document.createElement('div');
         logo.style.cssText = `
             display: flex;
@@ -183,8 +183,13 @@ class UserSystem {
             color: #666666;
             letter-spacing: 2px;
             white-space: nowrap;
+            cursor: pointer;
+            transition: color 0.3s;
         `;
         logo.innerHTML = '🚌 ВОКЗАЛ №69';
+        logo.onmouseenter = () => logo.style.color = '#ffd700';
+        logo.onmouseleave = () => logo.style.color = '#666666';
+        logo.onclick = () => window.location.href = 'index.html';
 
         // Правая часть - пользователь
         const userInfo = document.createElement('div');
@@ -615,7 +620,7 @@ class UserSystem {
         this.saveGameDataToUser();
         this.currentUser = null;
         localStorage.removeItem('vokzalCurrentUser');
-        window.location.reload();
+        window.location.href = 'index.html';
     }
 
     hashPassword(password) {
@@ -696,10 +701,11 @@ class UserSystem {
         }
     }
 
-    // Загрузка картинки из памяти
+    // Загрузка картинки из памяти с обработкой
     uploadAvatar(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
+            
             reader.onload = (e) => {
                 const imageData = e.target.result;
                 
@@ -728,6 +734,7 @@ class UserSystem {
                     reject('Ошибка сохранения: ' + e.message);
                 }
             };
+            
             reader.onerror = () => reject('Ошибка чтения файла');
             reader.readAsDataURL(file);
         });
