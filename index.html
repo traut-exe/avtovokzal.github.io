@@ -923,7 +923,7 @@
             font-size: 14px;
             color: #333333;
             letter-spacing: 2px;
-        ">СЕКУНД ДО ПОСАДКИ</div>
+        ">СЕКУНД ДО ВХОДА</div>
     </div>
 </div>
 
@@ -1026,7 +1026,7 @@
         <!-- Шапка -->
         <div class="header">
             <div class="balance">
-                <span class="coin-icon">☦</span>
+                <span class="coin-icon">₽</span>
                 <span id="balanceDisplay">0</span>
             </div>
             <div class="multiplier-badge" id="multiplierDisplay">x1.0</div>
@@ -1040,7 +1040,7 @@
                 <button class="click-btn" id="clickButton">
                     <span id="clickValue">+1</span>
                 </button>
-                <div class="desc">⚡ ЗАРАБОТАЙ МОНЕТУ НА КАРМАН ⚡</div>
+                <div class="desc">● ЗАРАБОТАЙ МОНЕТУ НА КАРМАН ●</div>
             </div>
         </div>
 
@@ -1146,7 +1146,7 @@ setTimeout(checkDailyTasks, 500);
         <!-- Активные бусты -->
         <div class="active-boosts" id="activeBoostsMain">
             <div class="boosts-header">
-                <span>⚡</span>
+                <span>🗲</span>
                 <span>АКТИВНО</span>
             </div>
             <div id="boostsListMain"></div>
@@ -1176,7 +1176,7 @@ setTimeout(checkDailyTasks, 500);
             <div class="reborn-requirement" id="rebornRequirement">
                 ⚠️ нужно 5 разряд
             </div>
-            <button class="reborn-btn" id="rebornButton">🔄 ПЕРЕЗАГРУЗИТЬ 🔄</button>
+            <button class="reborn-btn" id="rebornButton">↻ ПЕРЕЗАГРУЗИТЬ ↻</button>
         </div>
         
         <div class="footer"> Автовокзал • Эпоксидовский проезд </div>
@@ -1281,7 +1281,7 @@ initDailySystem();
             notification.style.boxShadow = '0 10px 0 #1a1a1a';
             notification.style.border = '3px solid #8a8a8a';
             notification.style.animation = 'bounce 1.5s forwards';
-            notification.innerHTML = '📈 РАЗРЯД ПОВЫШЕН!';
+            notification.innerHTML = 'РАЗРЯД ПОВЫШЕН!';
             
             const style = document.createElement('style');
             style.innerHTML = `
@@ -1350,7 +1350,7 @@ initDailySystem();
             if (playerLevel >= 5 && balance >= rebornCost) {
                 rebornBtn.classList.remove('disabled');
                 rebornRequirementSpan.style.color = '#aaffaa';
-                rebornRequirementSpan.innerHTML = '✅ можно перезагрузить';
+                rebornRequirementSpan.innerHTML = '✓ можно перезагрузить ✓';
             } else {
                 rebornBtn.classList.add('disabled');
                 rebornRequirementSpan.style.color = '#ffa47a';
@@ -1546,7 +1546,7 @@ setInterval(() => {
         gameData.poisoned = false;
         delete gameData.poisonEndTime;
         saveGame();
-        showBoostNotification('✅ Отравление прошло', 0, 0);
+        showBoostNotification(' Отравление прошло', 0, 0);
     }
 }, 1000);
 // ========== СИНХРОНИЗАЦИЯ С ЗАДАНИЯМИ ==========

@@ -610,7 +610,7 @@
         <div class="shop-balance">
             <span class="balance-label">МОНЕТЫ</span>
             <span class="balance-value">
-                <span>💰</span>
+                <span>₽</span>
                 <span id="shopBalance">0</span>
             </span>
         </div>
@@ -646,7 +646,7 @@
                 <div class="food-info">
                     <div class="food-name">Пирожок с капустой</div>
                     <div class="food-desc">Вчерашний, но есть можно</div>
-                    <span class="food-price">25💰</span>
+                    <span class="food-price">25 ₽</span>
                     <div class="food-effect">+20% доход на 45с</div>
                     <div class="food-effect poison">☠️ шанс отравления 3%</div>
                 </div>
@@ -659,7 +659,7 @@
                 <div class="food-info">
                     <div class="food-name">Беляш с мясом</div>
                     <div class="food-desc">ГоряЧЧЧий, жирный</div>
-                    <span class="food-price">60💰</span>
+                    <span class="food-price">60 ₽</span>
                     <div class="food-effect">+50% доход на 40с</div>
                     <div class="food-effect poison">☠️ шанс отравления 5%</div>
                 </div>
@@ -672,7 +672,7 @@
                 <div class="food-info">
                     <div class="food-name">Самса узбекская</div>
                     <div class="food-desc">СоЧЧЧная, с курицей</div>
-                    <span class="food-price">120💰</span>
+                    <span class="food-price">120 ₽</span>
                     <div class="food-effect">+100% доход на 30с</div>
                     <div class="food-effect poison">☠️ шанс отравления 2%</div>
                 </div>
@@ -685,7 +685,7 @@
                 <div class="food-info">
                     <div class="food-name">Чебурек хрустящий</div>
                     <div class="food-desc">ССОЧЕНЬ</div>
-                    <span class="food-price">250💰</span>
+                    <span class="food-price">250 ₽</span>
                     <div class="food-effect">+200% доход на 25с</div>
                     <div class="food-effect" style="color: #aaffaa;">✅ безопасно</div>
                 </div>
@@ -698,7 +698,7 @@
                 <div class="food-info">
                     <div class="food-name">Шаурма придорожная</div>
                     <div class="food-desc">Кошка говорит "мяу"?</div>
-                    <span class="food-price">150💰</span>
+                    <span class="food-price">150 ₽</span>
                     <div class="food-effect">+150% доход на 35с</div>
                     <div class="food-effect poison">☠️ шанс отравления 15%</div>
                 </div>
@@ -711,7 +711,7 @@
                 <div class="food-info">
                     <div class="food-name">Пельмени "Бабушкины"</div>
                     <div class="food-desc">Срок годности...?</div>
-                    <span class="food-price">40💰</span>
+                    <span class="food-price">40 ₽</span>
                     <div class="food-effect">+30% доход на 30с</div>
                     <div class="food-effect poison">☠️ шанс отравления 25%</div>
                 </div>
@@ -835,7 +835,7 @@
             
             // Показываем уведомление о бусте (если не отравление)
             if (roll >= poisonChance) {
-                showNotification(`✨ ${name}\n+${multiplier}% на ${duration}с!`);
+                showNotification(`${name}\n+${multiplier}% на ${duration}с!`);
             }
         }
         

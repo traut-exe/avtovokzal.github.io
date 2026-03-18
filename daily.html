@@ -775,7 +775,7 @@
         <div class="balance">
             <span class="balance-label">МОНЕТЫ</span>
             <span class="balance-value">
-                <span>💰</span>
+                <span>₽</span>
                 <span id="balanceDisplay">0</span>
             </span>
         </div>
@@ -813,7 +813,7 @@
                         <div class="task-progress-bar" id="task1Progress" style="width: 0%;"></div>
                     </div>
                 </div>
-                <div class="task-reward">+100💰</div>
+                <div class="task-reward">+100 ₽</div>
                 <button class="claim-button" id="claimTask1" data-task="task1" data-reward="100">ЗАБРАТЬ</button>
             </div>
             
@@ -827,13 +827,13 @@
                         <div class="task-progress-bar" id="task2Progress" style="width: 0%;"></div>
                     </div>
                 </div>
-                <div class="task-reward">+150💰</div>
+                <div class="task-reward">+150 ₽</div>
                 <button class="claim-button" id="claimTask2" data-task="task2" data-reward="150">ЗАБРАТЬ</button>
             </div>
             
             <!-- Задание 3: Заработать -->
             <div class="task-item" id="task3">
-                <div class="task-icon">💰</div>
+                <div class="task-icon">₽</div>
                 <div class="task-info">
                     <div class="task-name">НАКОПЛЕНИЕ</div>
                     <div class="task-desc">Заработай 500 монет</div>
@@ -841,7 +841,7 @@
                         <div class="task-progress-bar" id="task3Progress" style="width: 0%;"></div>
                     </div>
                 </div>
-                <div class="task-reward">+250💰</div>
+                <div class="task-reward">+250 ₽</div>
                 <button class="claim-button" id="claimTask3" data-task="task3" data-reward="250">ЗАБРАТЬ</button>
             </div>
             
@@ -855,7 +855,7 @@
                         <div class="task-progress-bar" id="task4Progress" style="width: 0%;"></div>
                     </div>
                 </div>
-                <div class="task-reward">+300💰</div>
+                <div class="task-reward">+300 ₽</div>
                 <button class="claim-button" id="claimTask4" data-task="task4" data-reward="300">ЗАБРАТЬ</button>
             </div>
         </div>
@@ -1080,7 +1080,7 @@
             document.getElementById('balanceDisplay').innerText = Math.floor(gameData.balance);
             updateUI();
             
-            showNotification(`🎉 +${reward}💰 получено!`);
+            showNotification(`🎉 +${reward}₽ получено!`);
         }
         
         // Получение бонуса за стрейн
@@ -1099,7 +1099,7 @@
             document.getElementById('balanceDisplay').innerText = Math.floor(gameData.balance);
             updateUI();
             
-            showNotification(`🎁 +${bonus}💰 бонус за серию!`);
+            showNotification(`🎁 +${bonus}₽ бонус за серию!`);
         }
         
         // Уведомление
