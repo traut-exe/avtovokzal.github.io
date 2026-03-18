@@ -5,6 +5,7 @@ class UserSystem {
         this.currentUser = null;
         this.users = this.loadUsers();
         this.init();
+        this.startRealtimeUpdates();
     }
 
     loadUsers() {
@@ -30,6 +31,10 @@ class UserSystem {
             const savedUser = localStorage.getItem('vokzalCurrentUser');
             if (savedUser) {
                 this.currentUser = JSON.parse(savedUser);
+                // Округляем баланс до целого числа
+                if (this.currentUser.stats) {
+                    this.currentUser.stats.balance = Math.floor(this.currentUser.stats.balance || 500);
+                }
             }
         } catch (e) {
             console.error('Ошибка загрузки текущего пользователя:', e);
@@ -41,6 +46,99 @@ class UserSystem {
             document.addEventListener('DOMContentLoaded', () => this.createUserBar());
         } else {
             this.createUserBar();
+        }
+    }
+
+    // Запуск обновлений в реальном времени
+    startRealtimeUpdates() {
+        // Обновляем каждую секунду
+        setInterval(() => {
+            this.syncWithGameData();
+        }, 1000);
+    }
+
+    // Синхронизация с данными игры
+    syncWithGameData() {
+        if (!this.currentUser) return;
+
+        try {
+            // Получаем актуальные данные из игры
+            const gameDataStr = localStorage.getItem('vokzalGameData');
+            if (gameDataStr) {
+                const gameData = JSON.parse(gameDataStr);
+                
+                // Обновляем данные пользователя
+                const user = this.users[this.currentUser.login];
+                if (user) {
+                    // Округляем баланс
+                    if (gameData.balance) gameData.balance = Math.floor(gameData.balance);
+                    
+                    user.gameData = gameData;
+                    user.stats = { ...user.stats, ...gameData };
+                    user.stats.balance = Math.floor(user.stats.balance || 500);
+                    
+                    this.saveUsers();
+                    
+                    // Обновляем текущего пользователя
+                    this.currentUser.stats = user.stats;
+                    this.currentUser.gameData = user.gameData;
+                    localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
+                    
+                    // Обновляем отображение в панели
+                    this.updateUserBar();
+                }
+            }
+        } catch (e) {
+            console.error('Ошибка синхронизации:', e);
+        }
+    }
+
+    // Обновление панели пользователя
+    updateUserBar() {
+        const userInfo = document.getElementById('userInfo');
+        if (userInfo && this.currentUser) {
+            userInfo.innerHTML = `
+                <div style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 50%;
+                    background: #4a4a4a;
+                    border: 2px solid #ffd700;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    overflow: hidden;
+                ">
+                    ${this.currentUser.avatar ? 
+                        (this.currentUser.avatar.startsWith('data:') ? 
+                            `<img src="${this.currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : 
+                            this.currentUser.avatar) 
+                        : '👤'}
+                </div>
+                <div style="color: white; font-weight: 700; font-size: 16px; white-space: nowrap;">
+                    ${this.currentUser.username}
+                </div>
+                <div style="color: #ffd700; font-weight: 900; font-size: 18px; white-space: nowrap;">
+                    ${Math.floor(this.currentUser.stats?.balance || 500)}💰
+                </div>
+            `;
+        } else if (userInfo) {
+            userInfo.innerHTML = `
+                <div style="
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 50%;
+                    background: #4a4a4a;
+                    border: 2px solid #666666;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                ">👤</div>
+                <div style="color: #999999; font-size: 16px; white-space: nowrap;">Гость</div>
+                <div style="color: #ffd700; font-size: 16px; white-space: nowrap;">🔑 Войти</div>
+            `;
         }
     }
 
@@ -74,10 +172,11 @@ class UserSystem {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 22px;
+            font-size: clamp(16px, 4vw, 22px);
             font-weight: 900;
             color: #666666;
             letter-spacing: 2px;
+            white-space: nowrap;
         `;
         logo.innerHTML = '🚌 ВОКЗАЛ №69';
 
@@ -87,17 +186,20 @@ class UserSystem {
         userInfo.style.cssText = `
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: clamp(5px, 2vw, 15px);
             cursor: pointer;
             padding: 8px 15px;
             border-radius: 40px;
             transition: background 0.3s;
             background: ${this.currentUser ? '#2a2a2a' : '#333333'};
             border: 2px solid ${this.currentUser ? '#ffd700' : '#555555'};
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
         `;
 
         // Обновляем информацию
-        this.updateUserInfo(userInfo);
+        this.updateUserBar();
 
         userInfo.addEventListener('mouseenter', () => {
             userInfo.style.background = '#444444';
@@ -120,49 +222,8 @@ class UserSystem {
 
         // Добавляем отступ для контента страницы
         document.body.style.paddingTop = '70px';
+        document.body.style.margin = '0';
         document.body.insertBefore(userBar, document.body.firstChild);
-    }
-
-    updateUserInfo(element) {
-        if (this.currentUser) {
-            element.innerHTML = `
-                <div style="
-                    width: 45px;
-                    height: 45px;
-                    border-radius: 50%;
-                    background: #4a4a4a;
-                    border: 2px solid #ffd700;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 24px;
-                ">
-                    ${this.currentUser.avatar || '👤'}
-                </div>
-                <div style="color: white; font-weight: 700; font-size: 16px;">
-                    ${this.currentUser.username}
-                </div>
-                <div style="color: #ffd700; font-weight: 900; font-size: 18px;">
-                    ${this.currentUser.stats?.balance || 500}💰
-                </div>
-            `;
-        } else {
-            element.innerHTML = `
-                <div style="
-                    width: 45px;
-                    height: 45px;
-                    border-radius: 50%;
-                    background: #4a4a4a;
-                    border: 2px solid #666666;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 24px;
-                ">👤</div>
-                <div style="color: #999999; font-size: 16px;">Гость</div>
-                <div style="color: #ffd700; font-size: 16px;">🔑 Войти</div>
-            `;
-        }
     }
 
     showAuthModal() {
@@ -180,6 +241,7 @@ class UserSystem {
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         `;
 
         // Модальное окно
@@ -187,9 +249,9 @@ class UserSystem {
         modal.style.cssText = `
             background: #2a2a2a;
             border-radius: 40px;
-            padding: 40px;
+            padding: clamp(20px, 5vw, 40px);
             max-width: 400px;
-            width: 90%;
+            width: 100%;
             border: 3px solid #ffd700;
             position: relative;
             animation: modalAppear 0.3s;
@@ -223,7 +285,7 @@ class UserSystem {
         const title = document.createElement('h2');
         title.style.cssText = `
             color: #ffd700;
-            font-size: 32px;
+            font-size: clamp(24px, 5vw, 32px);
             margin-bottom: 30px;
             text-align: center;
         `;
@@ -256,29 +318,31 @@ class UserSystem {
     showLoginForm(container) {
         container.innerHTML = `
             <div style="margin-bottom: 20px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                     <button id="loginTabBtn" style="
                         flex: 1;
+                        min-width: 120px;
                         padding: 15px;
                         background: #4CAF50;
                         border: none;
                         border-radius: 30px;
                         color: white;
                         font-weight: 700;
-                        font-size: 18px;
+                        font-size: clamp(14px, 3vw, 18px);
                         cursor: pointer;
                         border: 2px solid #8bc34a;
                     ">🔑 ВХОД</button>
                     
                     <button id="registerTabBtn" style="
                         flex: 1;
+                        min-width: 120px;
                         padding: 15px;
                         background: #3a3a3a;
                         border: none;
                         border-radius: 30px;
                         color: white;
                         font-weight: 700;
-                        font-size: 18px;
+                        font-size: clamp(14px, 3vw, 18px);
                         cursor: pointer;
                         border: 2px solid #666666;
                     ">📝 РЕГИСТРАЦИЯ</button>
@@ -292,7 +356,7 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 18px;
+                    font-size: clamp(14px, 3vw, 18px);
                 ">
                 
                 <input type="password" id="loginPassword" placeholder="Пароль" style="
@@ -303,7 +367,7 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 18px;
+                    font-size: clamp(14px, 3vw, 18px);
                 ">
                 
                 <button id="loginSubmit" style="
@@ -314,7 +378,7 @@ class UserSystem {
                     border-radius: 30px;
                     color: white;
                     font-weight: 700;
-                    font-size: 20px;
+                    font-size: clamp(16px, 4vw, 20px);
                     cursor: pointer;
                     transition: all 0.3s;
                 ">🚪 ВОЙТИ</button>
@@ -345,8 +409,7 @@ class UserSystem {
             
             if (result.success) {
                 document.getElementById('authOverlay')?.remove();
-                this.createUserBar(); // Пересоздаем панель
-                window.location.reload();
+                this.createUserBar();
             }
         });
     }
@@ -354,29 +417,31 @@ class UserSystem {
     showRegisterForm(container) {
         container.innerHTML = `
             <div style="margin-bottom: 20px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                     <button id="loginTabBtn" style="
                         flex: 1;
+                        min-width: 120px;
                         padding: 15px;
                         background: #3a3a3a;
                         border: none;
                         border-radius: 30px;
                         color: white;
                         font-weight: 700;
-                        font-size: 18px;
+                        font-size: clamp(14px, 3vw, 18px);
                         cursor: pointer;
                         border: 2px solid #666666;
                     ">🔑 ВХОД</button>
                     
                     <button id="registerTabBtn" style="
                         flex: 1;
+                        min-width: 120px;
                         padding: 15px;
                         background: #4CAF50;
                         border: none;
                         border-radius: 30px;
                         color: white;
                         font-weight: 700;
-                        font-size: 18px;
+                        font-size: clamp(14px, 3vw, 18px);
                         cursor: pointer;
                         border: 2px solid #8bc34a;
                     ">📝 РЕГИСТРАЦИЯ</button>
@@ -390,7 +455,7 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 18px;
+                    font-size: clamp(14px, 3vw, 18px);
                 ">
                 
                 <input type="text" id="regLogin" placeholder="Логин" style="
@@ -401,7 +466,7 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 18px;
+                    font-size: clamp(14px, 3vw, 18px);
                 ">
                 
                 <input type="password" id="regPassword" placeholder="Пароль" style="
@@ -412,7 +477,7 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 18px;
+                    font-size: clamp(14px, 3vw, 18px);
                 ">
                 
                 <button id="registerSubmit" style="
@@ -423,7 +488,7 @@ class UserSystem {
                     border-radius: 30px;
                     color: white;
                     font-weight: 700;
-                    font-size: 20px;
+                    font-size: clamp(16px, 4vw, 20px);
                     cursor: pointer;
                     transition: all 0.3s;
                 ">📝 ЗАРЕГИСТРИРОВАТЬСЯ</button>
@@ -460,8 +525,7 @@ class UserSystem {
             
             if (result.success) {
                 document.getElementById('authOverlay')?.remove();
-                this.createUserBar(); // Пересоздаем панель
-                window.location.reload();
+                this.createUserBar();
             }
         });
     }
@@ -479,15 +543,14 @@ class UserSystem {
             return { success: false, message: '❌ Пользователь с таким логином уже существует' };
         }
 
-        // Список аватаров
-        const avatars = ['👨', '👩', '👨‍🦰', '👩‍🦰', '👴', '👵', '🧔', '🧑', '👨‍🦳', '👩‍🦳'];
-        const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+        // Аватар по умолчанию
+        const defaultAvatar = '👤';
 
         const newUser = {
             username: username,
             login: login,
             password: this.hashPassword(password),
-            avatar: randomAvatar,
+            avatar: defaultAvatar,
             registeredAt: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
             stats: {
@@ -497,8 +560,7 @@ class UserSystem {
                 totalClicks: 0,
                 totalPurchases: 0,
                 totalEarned: 500,
-                foodPurchased: 0,
-                despairLevel: 0
+                foodPurchased: 0
             },
             gameData: {
                 balance: 500,
@@ -624,10 +686,12 @@ class UserSystem {
 
             const user = this.users[this.currentUser.login];
             if (user) {
+                // Округляем баланс
+                if (gameData.balance) gameData.balance = Math.floor(gameData.balance);
+                
                 user.stats = { ...user.stats, ...gameData };
                 user.gameData = gameData;
                 user.dailyTasks = dailyData;
-                user.stats.despairLevel = Math.min((user.stats.rebornLevel || 0) * 5, 100);
                 
                 this.saveUsers();
             }
@@ -659,15 +723,20 @@ class UserSystem {
         try {
             const user = this.users[this.currentUser.login];
             if (user) {
+                // Округляем баланс
+                if (newData.balance) newData.balance = Math.floor(newData.balance);
+                
                 user.gameData = { ...user.gameData, ...newData };
                 user.stats = { ...user.stats, ...newData };
-                user.stats.despairLevel = Math.min((user.stats.rebornLevel || 0) * 5, 100);
                 
                 this.saveUsers();
                 
                 this.currentUser.stats = user.stats;
                 this.currentUser.gameData = user.gameData;
                 localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
+                
+                // Обновляем отображение
+                this.updateUserBar();
             }
         } catch (e) {
             console.error('Ошибка обновления данных:', e);
@@ -687,8 +756,7 @@ class UserSystem {
                 localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
                 
                 // Обновляем отображение
-                const userInfo = document.getElementById('userInfo');
-                if (userInfo) this.updateUserInfo(userInfo);
+                this.updateUserBar();
                 
                 return true;
             }
@@ -696,6 +764,23 @@ class UserSystem {
             console.error('Ошибка смены аватара:', e);
         }
         return false;
+    }
+
+    // Загрузка картинки из памяти
+    uploadAvatar(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imageData = e.target.result;
+                if (this.changeAvatar(imageData)) {
+                    resolve(imageData);
+                } else {
+                    reject('Ошибка сохранения аватара');
+                }
+            };
+            reader.onerror = () => reject('Ошибка чтения файла');
+            reader.readAsDataURL(file);
+        });
     }
 }
 
@@ -708,6 +793,7 @@ window.saveGameProgress = function() {
         try {
             const gameDataStr = localStorage.getItem('vokzalGameData');
             const gameData = gameDataStr ? JSON.parse(gameDataStr) : {};
+            if (gameData.balance) gameData.balance = Math.floor(gameData.balance);
             window.userSystem.updateGameData(gameData);
         } catch (e) {
             console.error('Ошибка сохранения прогресса:', e);
@@ -718,4 +804,4 @@ window.saveGameProgress = function() {
 // Автосохранение
 setInterval(() => {
     window.saveGameProgress();
-}, 10000);
+}, 3000);

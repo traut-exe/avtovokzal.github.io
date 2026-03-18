@@ -1184,10 +1184,26 @@ window.addEventListener('beforeunload', saveProgress);
 <script src="auth-system.js"></script>
 
 <script>
-// Сохранение прогресса при кликах и действиях
+// Принудительно создаем панель пользователя
+window.addEventListener('load', function() {
+    if (window.userSystem) {
+        setTimeout(() => {
+            window.userSystem.createUserBar();
+        }, 100);
+    }
+});
+
+// Сохранение прогресса при кликах
 document.addEventListener('click', function() {
     setTimeout(window.saveGameProgress, 100);
 });
+
+// Обновление баланса в реальном времени
+setInterval(() => {
+    if (window.userSystem) {
+        window.userSystem.syncWithGameData();
+    }
+}, 1000);
 </script>
 
 </body>
