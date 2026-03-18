@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Профиль игрока</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: #1a1a1a;
+            background-image: 
+                linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
+                linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
+                linear-gradient(-45deg, transparent 75%, #2a2a2a 75%);
+            background-size: 20px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+        
+        .game-container {
+            max-width: 420px;
+            width: 100%;
+            background: #2c2c2c;
+            background: linear-gradient(145deg, #2d2d2d 0%, #1f1f1f 100%);
+            border-radius: 20px 20px 40px 40px;
+            box-shadow: 0 15px 0 #0f0f0f, 0 20px 30px rgba(0,0,0,0.8);
+            padding: 22px 18px 25px;
+            border: 2px solid #5a5a5a;
+            position: relative;
+        }
+        
+        .game-container::before {
+            content: "ПРОФИЛЬ";
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4a3a2a;
+            color: #c0c0c0;
+            padding: 4px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 900;
+            border: 2px solid #7a7a7a;
+            z-index: 10;
+        }
+        
+        .header {
+            background: #3a3a3a;
+            border-radius: 40px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #6b6b6b;
+            text-align: center;
+        }
+        
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #4a4a4a;
+            border: 4px solid #ffd700;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+        
+        .username {
+            color: #ffd700;
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+        
+        .login {
+            color: #9a9a9a;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .joined {
+            color: #6a6a6a;
+            font-size: 12px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #2a2a2a;
+            border-radius: 30px;
+            padding: 20px;
+            border: 2px solid #6a6a6a;
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #9a9a9a;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            color: #ffd700;
+            font-size: 28px;
+            font-weight: 900;
+        }
+        
+        .stat-value.small {
+            font-size: 20px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+            border: 1px solid #3a3a3a;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b0000, #ff4444);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .back-button {
+            background: #2a2a2a;
+            border: none;
+            border-radius: 60px;
+            padding: 16px;
+            width: 100%;
+            font-size: 20px;
+            font-weight: 700;
+            color: #c0c0c0;
+            box-shadow: 0 7px 0 #1a1a1a;
+            border: 2px solid #6a6a6a;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .back-button:active {
+            transform: translateY(4px);
+            box-shadow: 0 3px 0 #1a1a1a;
+        }
+        
+        .despair-meter {
+            background: #2a1a1a;
+            border: 2px solid #8b0000;
+            border-radius: 30px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .despair-title {
+            color: #ff8888;
+            font-size: 18px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header" id="profileHeader">
+            <!-- Данные будут загружены через JS -->
+        </div>
+        
+        <div class="stats-grid" id="statsGrid"></div>
+        
+        <div class="despair-meter" id="despairMeter">
+            <div class="despair-title">😫 УРОВЕНЬ ОТЧАЯНИЯ</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="despairProgress" style="width: 0%;"></div>
+            </div>
+            <div style="text-align: center; color: #ff8888; font-size: 24px; font-weight: 900;" id="despairValue">0%</div>
+        </div>
+        
+        <button class="back-button" onclick="window.location.href='index.html'">
+            <span>⬅️</span> НА ВОКЗАЛ
+        </button>
+    </div>
+
+    <script src="auth-system.js"></script>
+    <script>
+        function loadProfile() {
+            const user = window.userSystem.currentUser;
+            const header = document.getElementById('profileHeader');
+            const statsGrid = document.getElementById('statsGrid');
+            
+            if (!user) {
+                header.innerHTML = `
+                    <div style="color: #ff8888; font-size: 20px; padding: 40px;">
+                        ❌ Войдите в систему
+                    </div>
+                `;
+                document.getElementById('despairMeter').style.display = 'none';
+                return;
+            }
+            
+            const stats = user.stats;
+            
+            // Заголовок профиля
+            header.innerHTML = `
+                <div class="avatar">👤</div>
+                <div class="username">${user.username}</div>
+                <div class="login">@${user.login}</div>
+                <div class="joined">Присоединился: ${new Date(stats.registeredAt || Date.now()).toLocaleDateString('ru-RU')}</div>
+            `;
+            
+            // Статистика
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-label">Монеты</div>
+                    <div class="stat-value">${stats.balance}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔄</div>
+                    <div class="stat-label">Перерождений</div>
+                    <div class="stat-value">${stats.rebornLevel}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-label">Разряд</div>
+                    <div class="stat-value">${stats.playerLevel}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👆</div>
+                    <div class="stat-label">Кликов</div>
+                    <div class="stat-value small">${stats.totalClicks || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-label">Покупок</div>
+                    <div class="stat-value small">${stats.totalPurchases || 0}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🥟</div>
+                    <div class="stat-label">Еды куплено</div>
+                    <div class="stat-value small">${stats.foodPurchased || 0}</div>
+                </div>
+            `;
+            
+            // Уровень отчаяния
+            const despair = Math.min(stats.rebornLevel * 5, 100);
+            document.getElementById('despairProgress').style.width = `${despair}%`;
+            document.getElementById('despairValue').innerText = `${despair}%`;
+        }
+        
+        // Загружаем профиль
+        loadProfile();
+        
+        // Обновляем каждые 5 секунд
+        setInterval(loadProfile, 5000);
+    </script>
+</body>
+</html>

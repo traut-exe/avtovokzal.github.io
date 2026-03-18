@@ -861,6 +861,8 @@
     </style>
 </head>
 <body>
+    <!-- Подключение системы авторизации -->
+<script src="auth-system.js"></script>
     <!-- НАЧАЛЬНЫЙ ЭКРАН ПРИ ПЕРВОМ ЗАПУСКЕ -->
 <div id="startScreen" style="
     position: fixed;
@@ -1623,5 +1625,36 @@ setInterval(checkDailyTasks, 5000);
 // Вызываем при загрузке
 setTimeout(checkDailyTasks, 1000);
     </script>
+    <script>
+// Сохранение прогресса при действиях
+function saveProgress() {
+    if (window.userSystem && window.userSystem.currentUser) {
+        const gameData = {
+            balance: window.gameData?.balance || balance,
+            rebornLevel: window.gameData?.rebornLevel || rebornLevel,
+            playerLevel: window.gameData?.playerLevel || playerLevel,
+            totalClicks: window.totalClicks || 0,
+            totalPurchases: window.totalPurchases || 0,
+            foodPurchased: window.foodPurchased || 0,
+            belyashCount: belyashCount || 0,
+            samsaCount: samsaCount || 0,
+            cheburekCount: cheburekCount || 0,
+            seedCount: seedCount || 0,
+            currentExp: currentExp || 0
+        };
+        window.userSystem.updateGameData(gameData);
+    }
+}
+
+// Перехватываем все действия
+const actions = ['click', 'purchase', 'reborn'];
+actions.forEach(action => {
+    document.addEventListener(action, saveProgress);
+});
+
+// Сохраняем перед уходом
+window.addEventListener('beforeunload', saveProgress);
+</script>
+
 </body>
 </html>
