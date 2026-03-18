@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Вокзальный ларёк</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: #1a1a1a;
+            background-image: 
+                radial-gradient(circle at 10px 10px, #2a2a2a 2px, transparent 2px),
+                radial-gradient(circle at 30px 25px, #2a2a2a 2px, transparent 2px);
+            background-size: 40px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            animation: bgFlicker 10s infinite;
+        }
+        
+        @keyframes bgFlicker {
+            0%, 100% { background-color: #1a1a1a; }
+            50% { background-color: #1f1f1f; }
+        }
+        
+        .game-container {
+            max-width: 420px;
+            width: 100%;
+            background: #2a2a2a;
+            border-radius: 30px 30px 50px 50px;
+            box-shadow: 0 15px 0 #0f0f0f, 0 20px 20px black;
+            padding: 20px 15px 25px;
+            border: 3px solid #5a5a5a;
+            position: relative;
+            overflow: hidden;
+            animation: containerSlide 0.6s ease-out;
+        }
+        
+        @keyframes containerSlide {
+            0% { opacity: 0; transform: translateX(50px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        
+        .game-container::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0, 0, 0, 0.3) 8px, rgba(0, 0, 0, 0.3) 16px);
+            pointer-events: none;
+            animation: crackMove 20s linear infinite;
+        }
+        
+        @keyframes crackMove {
+            from { background-position: 0 0; }
+            to { background-position: 50px 50px; }
+        }
+        
+        .game-container::before {
+            content: "ВОКЗАЛЬНЫЙ ЛАРЁК";
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #3a3a3a;
+            color: #c0c0c0;
+            padding: 5px 20px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 900;
+            border: 2px solid #7a7a7a;
+            box-shadow: 0 4px 0 #1a1a1a;
+            transform: rotate(2deg);
+            z-index: 10;
+            animation: signWobble 3s ease-in-out infinite;
+        }
+        
+        @keyframes signWobble {
+            0%, 100% { transform: rotate(2deg); }
+            50% { transform: rotate(-2deg); }
+        }
+        
+        .shop-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #3a3a3a;
+            border-radius: 50px;
+            padding: 12px 22px;
+            margin-bottom: 20px;
+            border: 3px solid #6b6b6b;
+            box-shadow: inset 0 -4px 0 #1a1a1a;
+            position: relative;
+            z-index: 20;
+            animation: headerPulse 2s infinite;
+        }
+        
+        @keyframes headerPulse {
+            0%, 100% { box-shadow: inset 0 -4px 0 #1a1a1a, 0 0 10px rgba(200, 200, 200, 0.1); }
+            50% { box-shadow: inset 0 -4px 0 #1a1a1a, 0 0 20px rgba(200, 200, 200, 0.3); }
+        }
+        
+        .shop-header h2 {
+            color: #c0c0c0;
+            font-size: 22px;
+            font-weight: 900;
+        }
+        
+        .shop-header span {
+            font-size: 42px;
+            filter: grayscale(70%);
+            animation: gearRotate 4s linear infinite;
+        }
+        
+        @keyframes gearRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .shop-balance {
+            background: #1e1e1e;
+            border-radius: 60px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            border: 3px solid #7a7a7a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 20;
+            transition: all 0.3s ease;
+        }
+        
+        .shop-balance:hover {
+            transform: scale(1.02);
+            border-color: #a0a0a0;
+        }
+        
+        .balance-label {
+            color: #c0c0c0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .balance-value {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 900;
+            font-size: 26px;
+            color: #dddddd;
+        }
+        
+        .balance-value span:first-child {
+            animation: coinFlip 3s infinite;
+        }
+        
+        @keyframes coinFlip {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+        }
+        
+        .player-stats {
+            background: #1e1e1e;
+            border-radius: 40px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #6a6a6a;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            position: relative;
+            z-index: 20;
+        }
+        
+        .stat-item {
+            background: #2a2a2a;
+            border-radius: 30px;
+            padding: 10px;
+            text-align: center;
+            border: 2px solid #5a5a5a;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            border-color: #8a8a8a;
+        }
+        
+        .stat-label {
+            color: #9a9a9a;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .stat-value {
+            color: #dddddd;
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        /* Индикатор отравления */
+        .poison-indicator {
+            background: #3a1e1e;
+            border-radius: 30px;
+            padding: 10px 12px;
+            margin: 10px 0;
+            border: 3px solid #8b0000;
+            display: none;
+            position: relative;
+            z-index: 20;
+            animation: poisonPulse 1s infinite;
+        }
+        
+        @keyframes poisonPulse {
+            0%, 100% { border-color: #8b0000; }
+            50% { border-color: #ff4444; }
+        }
+        
+        .poison-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .poison-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .poison-left span:first-child {
+            font-size: 28px;
+            animation: poisonShake 0.3s infinite;
+        }
+        
+        @keyframes poisonShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        
+        .poison-left span:last-child {
+            color: #ff8888;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .poison-timer {
+            color: #ff8888;
+            font-weight: 900;
+            font-family: monospace;
+            font-size: 20px;
+        }
+        
+        .food-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+            position: relative;
+            z-index: 20;
+        }
+        
+        .food-card {
+            background: #2a2a2a;
+            border-radius: 30px;
+            padding: 12px;
+            border: 2px solid #6a6a6a;
+            box-shadow: 0 5px 0 #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: cardAppear 0.5s ease-out;
+            animation-fill-mode: both;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .food-card::after {
+            content: "☠️";
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 40px;
+            opacity: 0.1;
+            transform: rotate(20deg);
+            pointer-events: none;
+        }
+        
+        .food-card:nth-child(1) { animation-delay: 0.1s; }
+        .food-card:nth-child(2) { animation-delay: 0.2s; }
+        .food-card:nth-child(3) { animation-delay: 0.3s; }
+        .food-card:nth-child(4) { animation-delay: 0.4s; }
+        .food-card:nth-child(5) { animation-delay: 0.5s; }
+        
+        @keyframes cardAppear {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .food-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #1a1a1a;
+            border-color: #a0a0a0;
+        }
+        
+        /* Индикатор шанса отравления */
+        .poison-chance {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #8b0000;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+            opacity: 0.8;
+            z-index: 3;
+        }
+        
+        /* КОНТЕЙНЕР ДЛЯ КАРТИНКИ ЕДЫ */
+        .food-emoji {
+            background: #3a3a3a;
+            border-radius: 25px;
+            padding: 12px;
+            font-size: 36px;
+            border: 2px solid #7a7a7a;
+            min-width: 70px;
+            height: 70px;
+            text-align: center;
+            filter: grayscale(30%);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            /* ДЛЯ ВСТАВКИ КАРТИНКИ РАСКОММЕНТИРУЙ СТРОКУ НИЖЕ */
+            /* background: url('твоя-картинка.jpg') center/cover no-repeat; */
+        }
+        
+        .food-card:hover .food-emoji {
+            transform: rotate(10deg) scale(1.1);
+            filter: grayscale(0%);
+        }
+        
+        .food-info {
+            flex: 1;
+        }
+        
+        .food-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #c0c0c0;
+            margin-bottom: 4px;
+        }
+        
+        .food-desc {
+            font-size: 13px;
+            color: #9a9a9a;
+            margin-bottom: 6px;
+        }
+        
+        .food-price {
+            display: inline-block;
+            background: #1e1e1e;
+            border-radius: 20px;
+            padding: 4px 12px;
+            color: #aaffaa;
+            font-weight: 700;
+            font-size: 15px;
+            border: 1px solid #6a6a6a;
+            transition: all 0.3s ease;
+        }
+        
+        .food-card:hover .food-price {
+            background: #2a2a2a;
+            border-color: #aaffaa;
+        }
+        
+        .food-effect {
+            font-size: 11px;
+            color: #aaffaa;
+            margin-top: 4px;
+        }
+        
+        .food-effect.poison {
+            color: #ff8888;
+        }
+        
+        .buy-button {
+            background: #3a3a3a;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 16px;
+            font-weight: 700;
+            color: #ffffff;
+            font-size: 16px;
+            box-shadow: 0 4px 0 #1a1a1a;
+            transition: all 0.1s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            border: 2px solid #7a7a7a;
+            cursor: pointer;
+            min-width: 95px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .buy-button::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .buy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #1a1a1a;
+            border-color: #c0c0c0;
+        }
+        
+        .buy-button:hover::before {
+            left: 100%;
+        }
+        
+        .buy-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1a1a1a;
+        }
+        
+        .buy-button:active::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple 0.3s;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .buy-button.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        
+        /* Карточка с высоким шансом отравления */
+        .food-card.risky {
+            border-color: #8b0000;
+        }
+        
+        .food-card.risky .food-emoji {
+            border-color: #8b0000;
+        }
+        
+        .food-card.risky .food-price {
+            background: #3a1e1e;
+            color: #ffaaaa;
+            border-color: #8b0000;
+        }
+        
+        .back-button {
+            background: #2a2a2a;
+            border: none;
+            border-radius: 60px;
+            padding: 16px;
+            width: 100%;
+            font-size: 20px;
+            font-weight: 700;
+            color: #c0c0c0;
+            box-shadow: 0 6px 0 #1a1a1a;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #6a6a6a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 20;
+            overflow: hidden;
+        }
+        
+        .back-button::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #1a1a1a;
+            border-color: #c0c0c0;
+            letter-spacing: 3px;
+        }
+        
+        .back-button:hover::before {
+            left: 100%;
+        }
+        
+        .back-button:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #1a1a1a;
+        }
+        
+        .back-button span:first-child {
+            transition: transform 0.3s ease;
+        }
+        
+        .back-button:hover span:first-child {
+            transform: translateX(-5px);
+        }
+        
+        .back-button:hover span:last-child {
+            transform: translateX(5px);
+        }
+        
+        /* Уведомления */
+        .boost-notification {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2a4a2a;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            border: 3px solid #4a9a4a;
+            z-index: 1000;
+            box-shadow: 0 5px 0 #1a4a1a;
+            text-align: center;
+            animation: boostPopup 2s forwards;
+        }
+        
+        .boost-notification.poison {
+            background: #4a1e1e;
+            border-color: #8b0000;
+            box-shadow: 0 5px 0 #3a0000;
+        }
+        
+        @keyframes boostPopup {
+            0% { opacity: 0; transform: translate(-50%, 30px); }
+            15% { opacity: 1; transform: translate(-50%, -50%); }
+            85% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -80px); }
+        }
+        
+        .hint {
+            text-align: center;
+            color: #6a6a6a;
+            font-size: 13px;
+            margin-top: 10px;
+            position: relative;
+            z-index: 20;
+            animation: hintGlow 2s infinite;
+        }
+        
+        @keyframes hintGlow {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Шапка -->
+        <div class="shop-header">
+            <h2>ВОКЗАЛЬНЫЙ ЛАРЁК</h2>
+            <span>🥟</span>
+        </div>
+        
+        <!-- Баланс -->
+        <div class="shop-balance">
+            <span class="balance-label">МОНЕТЫ</span>
+            <span class="balance-value">
+                <span>💰</span>
+                <span id="shopBalance">0</span>
+            </span>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="player-stats">
+            <div class="stat-item">
+                <div class="stat-label">Разряд</div>
+                <div class="stat-value" id="statLevel">1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Перезагрузок</div>
+                <div class="stat-value" id="statReborn">0</div>
+            </div>
+        </div>
+
+        <!-- Индикатор отравления -->
+        <div class="poison-indicator" id="poisonIndicator">
+            <div class="poison-content">
+                <div class="poison-left">
+                    <span>🤢</span>
+                    <span>ОТРАВЛЕНИЕ</span>
+                </div>
+                <span class="poison-timer" id="poisonTimer">30с</span>
+            </div>
+        </div>
+        
+        <!-- Товары - ВОКЗАЛЬНАЯ ЕДА -->
+        <div class="food-grid">
+            <!-- Пирожок с капустой (дешево, малый шанс) -->
+            <div class="food-card">
+                <div class="food-emoji">🥟</div>
+                <div class="food-info">
+                    <div class="food-name">Пирожок с капустой</div>
+                    <div class="food-desc">Вчерашний, но есть можно</div>
+                    <span class="food-price">25💰</span>
+                    <div class="food-effect">+20% доход на 45с</div>
+                    <div class="food-effect poison">☠️ шанс отравления 3%</div>
+                </div>
+                <button class="buy-button" id="shopBuyPirozhok">Купить</button>
+            </div>
+            
+            <!-- Беляш (средне, средний шанс) -->
+            <div class="food-card">
+                <div class="food-emoji">🥠</div>
+                <div class="food-info">
+                    <div class="food-name">Беляш с мясом</div>
+                    <div class="food-desc">ГоряЧЧЧий, жирный</div>
+                    <span class="food-price">60💰</span>
+                    <div class="food-effect">+50% доход на 40с</div>
+                    <div class="food-effect poison">☠️ шанс отравления 5%</div>
+                </div>
+                <button class="buy-button" id="shopBuyBelyash">Купить</button>
+            </div>
+            
+            <!-- Самса (дорого, малый шанс) -->
+            <div class="food-card">
+                <div class="food-emoji">🥮</div>
+                <div class="food-info">
+                    <div class="food-name">Самса узбекская</div>
+                    <div class="food-desc">СоЧЧЧная, с курицей</div>
+                    <span class="food-price">120💰</span>
+                    <div class="food-effect">+100% доход на 30с</div>
+                    <div class="food-effect poison">☠️ шанс отравления 2%</div>
+                </div>
+                <button class="buy-button" id="shopBuySamsa">Купить</button>
+            </div>
+            
+            <!-- Чебурек (очень дорого, но безопасно) -->
+            <div class="food-card">
+                <div class="food-emoji">🥟</div>
+                <div class="food-info">
+                    <div class="food-name">Чебурек хрустящий</div>
+                    <div class="food-desc">ССОЧЕНЬ</div>
+                    <span class="food-price">250💰</span>
+                    <div class="food-effect">+200% доход на 25с</div>
+                    <div class="food-effect" style="color: #aaffaa;">✅ безопасно</div>
+                </div>
+                <button class="buy-button" id="shopBuyCheburek">Купить</button>
+            </div>
+            
+            <!-- Шаурма (рискованная, большой шанс) -->
+            <div class="food-card risky">
+                <div class="food-emoji">🌯</div>
+                <div class="food-info">
+                    <div class="food-name">Шаурма придорожная</div>
+                    <div class="food-desc">Кошка говорит "мяу"?</div>
+                    <span class="food-price">150💰</span>
+                    <div class="food-effect">+150% доход на 35с</div>
+                    <div class="food-effect poison">☠️ шанс отравления 15%</div>
+                </div>
+                <button class="buy-button" id="shopBuyShawarma">Купить</button>
+            </div>
+            
+            <!-- Пельмени (дешево, но очень рискованно) -->
+            <div class="food-card risky">
+                <div class="food-emoji">🥟</div>
+                <div class="food-info">
+                    <div class="food-name">Пельмени "Бабушкины"</div>
+                    <div class="food-desc">Срок годности...?</div>
+                    <span class="food-price">40💰</span>
+                    <div class="food-effect">+30% доход на 30с</div>
+                    <div class="food-effect poison">☠️ шанс отравления 25%</div>
+                </div>
+                <button class="buy-button" id="shopBuyPelmeni">Купить</button>
+            </div>
+        </div>
+        
+        <!-- Кнопка возврата -->
+        <button class="back-button" id="backToGame">
+            <span>⬅️</span> НА ВОКЗАЛ <span>🚉</span>
+        </button>
+        
+        <div class="hint">☠️ Отравление снижает доход на 50% на 30 секунд</div>
+    </div>
+    
+    <script>
+        let gameData = null;
+        
+        function loadGameData() {
+            const saved = localStorage.getItem('vokzalGameData');
+            if (saved) {
+                gameData = JSON.parse(saved);
+                updateDisplay();
+            }
+        }
+        
+        function updateDisplay() {
+            if (gameData) {
+                document.getElementById('shopBalance').innerText = Math.floor(gameData.balance);
+                document.getElementById('statLevel').innerText = gameData.playerLevel || 1;
+                document.getElementById('statReborn').innerText = gameData.rebornLevel || 0;
+                
+                // Обновляем индикатор отравления
+                const poisonIndicator = document.getElementById('poisonIndicator');
+                const poisonTimer = document.getElementById('poisonTimer');
+                
+                if (gameData.poisoned && gameData.poisonEndTime > Date.now()) {
+                    poisonIndicator.style.display = 'block';
+                    const timeLeft = Math.max(0, Math.ceil((gameData.poisonEndTime - Date.now()) / 1000));
+                    poisonTimer.innerText = `${timeLeft}с`;
+                } else {
+                    poisonIndicator.style.display = 'none';
+                    if (gameData.poisoned) {
+                        gameData.poisoned = false;
+                        delete gameData.poisonEndTime;
+                        localStorage.setItem('vokzalGameData', JSON.stringify(gameData));
+                    }
+                }
+                
+                updateButtons();
+            }
+        }
+        
+        function updateButtons() {
+            if (!gameData) return;
+            
+            const buttons = {
+                pirozhok: { price: 25, element: document.getElementById('shopBuyPirozhok') },
+                belyash: { price: 60, element: document.getElementById('shopBuyBelyash') },
+                samsa: { price: 120, element: document.getElementById('shopBuySamsa') },
+                cheburek: { price: 250, element: document.getElementById('shopBuyCheburek') },
+                shawarma: { price: 150, element: document.getElementById('shopBuyShawarma') },
+                pelmeni: { price: 40, element: document.getElementById('shopBuyPelmeni') }
+            };
+            
+            for (let key in buttons) {
+                buttons[key].element.classList.toggle('disabled', gameData.balance < buttons[key].price);
+            }
+        }
+        
+        // Функция показа уведомления
+        function showNotification(message, isPoison = false) {
+            const oldNotif = document.querySelector('.boost-notification');
+            if (oldNotif) oldNotif.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = `boost-notification ${isPoison ? 'poison' : ''}`;
+            notification.innerHTML = message.replace(/\n/g, '<br>');
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentNode) notification.remove();
+            }, 2000);
+        }
+        
+        // Функция активации отравления
+        function activatePoison() {
+            const poisonDuration = 30 * 1000; // 30 секунд
+            gameData.poisoned = true;
+            gameData.poisonEndTime = Date.now() + poisonDuration;
+            
+            showNotification('ТЫ ОТРАВИЛСЯ!\n-50% к доходу на 30с', true);
+            
+            // Отправляем информацию об отравлении на главную страницу
+            if (window.opener) {
+                window.opener.postMessage({ type: 'POISON', endTime: gameData.poisonEndTime }, '*');
+            }
+            
+            localStorage.setItem('vokzalGameData', JSON.stringify(gameData));
+            updateDisplay();
+        }
+        
+        // Функция активации буста
+        function activateBoost(multiplier, duration, name, poisonChance = 0) {
+            // Проверяем шанс отравления
+            const roll = Math.random() * 100;
+            if (roll < poisonChance) {
+                activatePoison();
+                // Все равно даем буст, но с отравлением
+            }
+            
+            const endTime = Date.now() + (duration * 1000);
+            
+            if (!gameData.activeBoosts) gameData.activeBoosts = [];
+            gameData.activeBoosts.push({
+                multiplier: multiplier,
+                endTime: endTime,
+                name: name
+            });
+            
+            // Показываем уведомление о бусте (если не отравление)
+            if (roll >= poisonChance) {
+                showNotification(`✨ ${name}\n+${multiplier}% на ${duration}с!`);
+            }
+        }
+        
+        function buyItem(price, name, multiplier, duration, poisonChance = 0) {
+            if (!gameData) return;
+            if (gameData.balance < price) {
+                showNotification('❌ Нет монет!', true);
+                return;
+            }
+            
+            gameData.balance -= price;
+            activateBoost(multiplier, duration, name, poisonChance);
+            
+            localStorage.setItem('vokzalGameData', JSON.stringify(gameData));
+            updateDisplay();
+        }
+        
+        // Назначаем обработчики для каждой еды
+        document.getElementById('shopBuyPirozhok').addEventListener('click', () => 
+            buyItem(25, ' Пирожок', 20, 45, 3));
+        
+        document.getElementById('shopBuyBelyash').addEventListener('click', () => 
+            buyItem(60, ' Беляш', 50, 40, 5));
+        
+        document.getElementById('shopBuySamsa').addEventListener('click', () => 
+            buyItem(120, ' Самса', 100, 30, 2));
+        
+        document.getElementById('shopBuyCheburek').addEventListener('click', () => 
+            buyItem(250, ' Чебурек', 200, 25, 0));
+        
+        document.getElementById('shopBuyShawarma').addEventListener('click', () => 
+            buyItem(150, ' Шаурма', 150, 35, 15));
+        
+        document.getElementById('shopBuyPelmeni').addEventListener('click', () => 
+            buyItem(40, ' Пельмени', 30, 30, 25));
+        
+        document.getElementById('backToGame').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+        
+        // Слушаем сообщения от главной страницы
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'REQUEST_POISON') {
+                if (gameData && gameData.poisoned) {
+                    event.source.postMessage({ 
+                        type: 'POISON_UPDATE', 
+                        endTime: gameData.poisonEndTime 
+                    }, '*');
+                }
+            }
+        });
+        
+        loadGameData();
+        setInterval(loadGameData, 1000);
+        // ========== ОТСЛЕЖИВАНИЕ ПОКУПОК ДЛЯ ЗАДАНИЙ ==========
+// Переопределяем функцию покупки для отслеживания
+const originalBuyItem = buyItem;
+buyItem = function(price, type, name, multiplier, duration) {
+    // Вызываем оригинальную функцию
+    const result = originalBuyItem(price, type, name, multiplier, duration);
+    
+    // Обновляем данные для заданий
+    let gameData = JSON.parse(localStorage.getItem('vokzalGameData') || '{}');
+    
+    // Увеличиваем счетчик покупок
+    gameData.totalPurchases = (gameData.totalPurchases || 0) + 1;
+    
+    // Увеличиваем счетчик еды для соответствующих типов
+    if (type === 'seed' || type === 'belyash' || type === 'samsa' || type === 'cheburek') {
+        if (type === 'seed') gameData.seedCount = (gameData.seedCount || 0) + 1;
+        if (type === 'belyash') gameData.belyashCount = (gameData.belyashCount || 0) + 1;
+        if (type === 'samsa') gameData.samsaCount = (gameData.samsaCount || 0) + 1;
+        if (type === 'cheburek') gameData.cheburekCount = (gameData.cheburekCount || 0) + 1;
+    }
+    
+    // Увеличиваем заработанные монеты (потратили монеты)
+    gameData.totalEarned = (gameData.totalEarned || 0) + price;
+    
+    localStorage.setItem('vokzalGameData', JSON.stringify(gameData));
+    
+    return result;
+};
+    </script>
+</body>
+</html>
