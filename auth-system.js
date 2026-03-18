@@ -186,7 +186,7 @@ class UserSystem {
             cursor: pointer;
             transition: color 0.3s;
         `;
-        logo.innerHTML = '🚌 ВОКЗАЛ №69';
+        logo.innerHTML = '';
         logo.onmouseenter = () => logo.style.color = '#ffd700';
         logo.onmouseleave = () => logo.style.color = '#666666';
         logo.onclick = () => window.location.href = 'index.html';
@@ -300,7 +300,7 @@ class UserSystem {
             margin-bottom: 30px;
             text-align: center;
         `;
-        title.innerHTML = '🚌 ВОКЗАЛ №69';
+        title.innerHTML = '';
 
         // Контейнер для форм
         const formContainer = document.createElement('div');
