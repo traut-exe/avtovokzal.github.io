@@ -2,13 +2,13 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль игрока</title>
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', 'Courier New', monospace;
         }
         
@@ -24,16 +24,14 @@
             color: white;
         }
         
-        /* Верхняя панель */
         .top-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             height: 70px;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 2px solid #333333;
+            background: #1a1a1a;
+            border-bottom: 3px solid #333;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -44,64 +42,39 @@
         .logo {
             font-size: 24px;
             font-weight: 900;
-            color: #666666;
-            letter-spacing: 4px;
-        }
-        
-        .logo span {
-            color: #ffd700;
+            color: #666;
+            letter-spacing: 2px;
         }
         
         .back-btn {
             background: #2a2a2a;
-            border: 2px solid #6a6a6a;
+            border: 2px solid #666;
             border-radius: 30px;
             padding: 10px 25px;
             color: white;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 16px;
         }
         
         .back-btn:hover {
-            background: #3a3a3a;
             border-color: #ffd700;
             transform: translateX(-5px);
         }
         
-        /* Основной контейнер */
         .profile-container {
             max-width: 1000px;
             margin: 90px auto 30px;
             padding: 0 20px;
         }
         
-        /* Шапка профиля */
         .profile-header {
             background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
             border-radius: 40px;
             padding: 40px;
             margin-bottom: 30px;
-            border: 2px solid #333333;
+            border: 2px solid #333;
             position: relative;
-            overflow: hidden;
-            animation: headerGlow 3s infinite;
-        }
-        
-        @keyframes headerGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.1); }
-            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.2); }
-        }
-        
-        .profile-header::before {
-            content: "👤";
-            position: absolute;
-            bottom: -20px;
-            right: -20px;
-            font-size: 200px;
-            opacity: 0.05;
-            transform: rotate(10deg);
         }
         
         .avatar-section {
@@ -121,13 +94,6 @@
             align-items: center;
             justify-content: center;
             font-size: 80px;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-            transition: all 0.3s;
-        }
-        
-        .avatar-large:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
         }
         
         .user-info {
@@ -139,22 +105,19 @@
             font-weight: 900;
             color: #ffd700;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
         
         .user-login {
             font-size: 20px;
-            color: #666666;
-            margin-bottom: 20px;
+            color: #666;
+            margin-bottom: 10px;
             font-family: monospace;
         }
         
         .user-joined {
-            color: #999999;
-            font-size: 16px;
+            color: #999;
         }
         
-        /* Сетка статистики */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -166,36 +129,13 @@
             background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
             border-radius: 30px;
             padding: 30px;
-            border: 2px solid #333333;
-            position: relative;
-            overflow: hidden;
+            border: 2px solid #333;
             transition: all 0.3s;
-            animation: cardAppear 0.5s ease-out;
-            animation-fill-mode: both;
-        }
-        
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.2s; }
-        .stat-card:nth-child(3) { animation-delay: 0.3s; }
-        .stat-card:nth-child(4) { animation-delay: 0.4s; }
-        .stat-card:nth-child(5) { animation-delay: 0.5s; }
-        .stat-card:nth-child(6) { animation-delay: 0.6s; }
-        
-        @keyframes cardAppear {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
             border-color: #ffd700;
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+            transform: translateY(-5px);
         }
         
         .stat-icon {
@@ -204,37 +144,27 @@
         }
         
         .stat-label {
-            color: #999999;
+            color: #999;
             font-size: 16px;
             margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
         }
         
         .stat-value {
             color: #ffd700;
             font-size: 48px;
             font-weight: 900;
-            line-height: 1;
         }
         
         .stat-value.small {
             font-size: 32px;
         }
         
-        .stat-desc {
-            color: #666666;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        
-        /* Секция аватаров */
         .avatars-section {
             background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
             border-radius: 40px;
             padding: 30px;
             margin-top: 30px;
-            border: 2px solid #333333;
+            border: 2px solid #333;
         }
         
         .avatars-title {
@@ -253,7 +183,7 @@
         .avatar-option {
             aspect-ratio: 1;
             background: #2a2a2a;
-            border: 3px solid #444444;
+            border: 3px solid #444;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -266,7 +196,6 @@
         .avatar-option:hover {
             border-color: #ffd700;
             transform: scale(1.1);
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
         }
         
         .avatar-option.selected {
@@ -274,7 +203,6 @@
             box-shadow: 0 0 30px #ffd700;
         }
         
-        /* Индикатор отчаяния */
         .despair-meter {
             background: linear-gradient(145deg, #2a1a1a, #1a0a0a);
             border: 3px solid #8b0000;
@@ -306,32 +234,14 @@
             background: linear-gradient(90deg, #8b0000, #ff4444);
             width: 0%;
             transition: width 0.5s;
-            position: relative;
-        }
-        
-        .progress-fill::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shine 2s infinite;
-        }
-        
-        @keyframes shine {
-            to { left: 100%; }
         }
         
         .despair-value {
             color: #ff8888;
             font-size: 48px;
             font-weight: 900;
-            text-shadow: 0 0 20px #ff0000;
         }
         
-        /* Кнопка выхода */
         .logout-btn {
             background: #4a2a2a;
             border: 3px solid #8b0000;
@@ -344,54 +254,47 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 30px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
         }
         
         .logout-btn:hover {
             background: #6a2a2a;
             border-color: #ff0000;
-            color: #ffffff;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255, 0, 0, 0.3);
+            color: white;
         }
         
-        .logout-btn:active {
-            transform: translateY(3px);
+        .error-message {
+            background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+            border-radius: 40px;
+            padding: 60px;
+            text-align: center;
+            border: 2px solid #333;
         }
         
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .avatar-section {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .user-name {
-                font-size: 36px;
-            }
-            
-            .stat-value {
-                font-size: 36px;
-            }
+        .error-message h2 {
+            color: #ff8888;
+            font-size: 32px;
+            margin: 20px 0;
+        }
+        
+        .error-message button {
+            background: #4CAF50;
+            border: none;
+            border-radius: 40px;
+            padding: 20px 40px;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <!-- Верхняя панель -->
     <div class="top-bar">
-        <div class="logo">
-            <span>🚌</span> ВОКЗАЛ №69
-        </div>
-        <button class="back-btn" onclick="window.location.href='index.html'">
-            ← НА ГЛАВНУЮ
-        </button>
+        <div class="logo">🚌 ВОКЗАЛ №69</div>
+        <button class="back-btn" onclick="window.location.href='index.html'">← НА ГЛАВНУЮ</button>
     </div>
 
-    <!-- Основной контент -->
-    <div class="profile-container" id="profileContainer">
-        <!-- Контент будет загружен через JS -->
-    </div>
+    <div class="profile-container" id="profileContainer"></div>
 
     <script src="auth-system.js"></script>
     <script>
@@ -401,27 +304,10 @@
             
             if (!user) {
                 container.innerHTML = `
-                    <div style="
-                        background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
-                        border-radius: 40px;
-                        padding: 60px;
-                        text-align: center;
-                        border: 2px solid #333333;
-                    ">
-                        <div style="font-size: 80px; margin-bottom: 30px;">🚌</div>
-                        <div style="color: #ff8888; font-size: 32px; font-weight: 900; margin-bottom: 20px;">
-                            ВОЙДИТЕ В СИСТЕМУ
-                        </div>
-                        <button onclick="window.location.href='index.html'" style="
-                            background: #4CAF50;
-                            border: none;
-                            border-radius: 40px;
-                            padding: 20px 40px;
-                            color: white;
-                            font-weight: 700;
-                            font-size: 20px;
-                            cursor: pointer;
-                        ">← НА ГЛАВНУЮ</button>
+                    <div class="error-message">
+                        <div style="font-size: 80px;">🚌</div>
+                        <h2>ВОЙДИТЕ В СИСТЕМУ</h2>
+                        <button onclick="window.location.href='index.html'">← НА ГЛАВНУЮ</button>
                     </div>
                 `;
                 return;
@@ -431,78 +317,57 @@
             const despair = Math.min((stats.rebornLevel || 0) * 5, 100);
             
             container.innerHTML = `
-                <!-- Шапка профиля -->
                 <div class="profile-header">
                     <div class="avatar-section">
-                        <div class="avatar-large" id="currentAvatar">
-                            ${user.avatar || '👤'}
-                        </div>
+                        <div class="avatar-large" id="currentAvatar">${user.avatar || '👤'}</div>
                         <div class="user-info">
                             <div class="user-name">${escapeHtml(user.username)}</div>
                             <div class="user-login">@${escapeHtml(user.login)}</div>
                             <div class="user-joined">
-                                Присоединился: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })}
+                                Присоединился: ${new Date().toLocaleDateString('ru-RU')}
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Статистика -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">💰</div>
                         <div class="stat-label">Монеты</div>
                         <div class="stat-value">${stats.balance || 500}</div>
-                        <div class="stat-desc">на балансе</div>
                     </div>
-                    
                     <div class="stat-card">
                         <div class="stat-icon">🔄</div>
                         <div class="stat-label">Перерождений</div>
                         <div class="stat-value">${stats.rebornLevel || 0}</div>
-                        <div class="stat-desc">из 18</div>
                     </div>
-                    
                     <div class="stat-card">
                         <div class="stat-icon">📊</div>
                         <div class="stat-label">Разряд</div>
                         <div class="stat-value">${stats.playerLevel || 1}</div>
-                        <div class="stat-desc">текущий уровень</div>
                     </div>
-                    
                     <div class="stat-card">
                         <div class="stat-icon">👆</div>
                         <div class="stat-label">Кликов</div>
                         <div class="stat-value small">${stats.totalClicks || 0}</div>
-                        <div class="stat-desc">всего сделано</div>
                     </div>
-                    
                     <div class="stat-card">
                         <div class="stat-icon">🛒</div>
                         <div class="stat-label">Покупок</div>
                         <div class="stat-value small">${stats.totalPurchases || 0}</div>
-                        <div class="stat-desc">в ларьке</div>
                     </div>
-                    
                     <div class="stat-card">
                         <div class="stat-icon">🥟</div>
-                        <div class="stat-label">Еды куплено</div>
+                        <div class="stat-label">Еды</div>
                         <div class="stat-value small">${stats.foodPurchased || 0}</div>
-                        <div class="stat-desc">перекусов</div>
                     </div>
                 </div>
                 
-                <!-- Выбор аватара -->
                 <div class="avatars-section">
                     <div class="avatars-title">🎭 ВЫБЕРИ АВАТАР</div>
                     <div class="avatars-grid" id="avatarsGrid"></div>
                 </div>
                 
-                <!-- Индикатор отчаяния -->
                 <div class="despair-meter">
                     <div class="despair-title">😫 УРОВЕНЬ ОТЧАЯНИЯ</div>
                     <div class="progress-bar">
@@ -511,16 +376,11 @@
                     <div class="despair-value">${despair}%</div>
                 </div>
                 
-                <!-- Кнопка выхода -->
-                <button class="logout-btn" id="logoutBtn">
-                    🚪 ВЫЙТИ ИЗ АККАУНТА
-                </button>
+                <button class="logout-btn" id="logoutBtn">🚪 ВЫЙТИ ИЗ АККАУНТА</button>
             `;
             
-            // Загружаем аватары
             loadAvatars(user.avatar);
             
-            // Обработчик выхода
             document.getElementById('logoutBtn')?.addEventListener('click', () => {
                 if (confirm('Точно выйти?')) {
                     window.userSystem.logout();
@@ -528,24 +388,17 @@
             });
         }
         
-        function loadAvatars(selectedAvatar) {
+        function loadAvatars(selected) {
             const avatars = ['👨', '👩', '👨‍🦰', '👩‍🦰', '👴', '👵', '🧔', '🧑', '👨‍🦳', '👩‍🦳'];
             const grid = document.getElementById('avatarsGrid');
             if (!grid) return;
             
-            grid.innerHTML = avatars.map(avatar => `
-                <div class="avatar-option ${avatar === selectedAvatar ? 'selected' : ''}" 
-                     onclick="selectAvatar('${avatar}')">
-                    ${avatar}
+            grid.innerHTML = avatars.map(a => `
+                <div class="avatar-option ${a === selected ? 'selected' : ''}" 
+                     onclick="window.userSystem.changeAvatar('${a}'); loadProfile();">
+                    ${a}
                 </div>
             `).join('');
-        }
-        
-        function selectAvatar(avatar) {
-            if (window.userSystem.changeAvatar(avatar)) {
-                document.getElementById('currentAvatar').innerHTML = avatar;
-                loadAvatars(avatar);
-            }
         }
         
         function escapeHtml(text) {
@@ -555,10 +408,7 @@
             return div.innerHTML;
         }
         
-        // Загружаем профиль
         setTimeout(loadProfile, 100);
-        
-        // Обновляем каждые 5 секунд
         setInterval(loadProfile, 5000);
     </script>
 </body>

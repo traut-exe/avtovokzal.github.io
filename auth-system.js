@@ -36,12 +36,6 @@ class UserSystem {
             this.currentUser = null;
         }
         
-        // Добавляем панель пользователя на страницу
-        this.addUserBar();
-    }
-
-    // Добавляем панель пользователя на страницу
-    addUserBar() {
         // Ждем загрузки DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.createUserBar());
@@ -51,8 +45,9 @@ class UserSystem {
     }
 
     createUserBar() {
-        // Проверяем, есть ли уже панель
-        if (document.getElementById('userBar')) return;
+        // Удаляем старую панель если есть
+        const oldBar = document.getElementById('userBar');
+        if (oldBar) oldBar.remove();
 
         // Создаем панель пользователя
         const userBar = document.createElement('div');
@@ -62,21 +57,24 @@ class UserSystem {
             top: 0;
             left: 0;
             right: 0;
-            height: 60px;
+            height: 70px;
             background: #1a1a1a;
-            border-bottom: 2px solid #333333;
+            border-bottom: 3px solid #333333;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
             z-index: 9999;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         `;
 
         // Левая часть - логотип
         const logo = document.createElement('div');
         logo.style.cssText = `
-            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
             font-weight: 900;
             color: #666666;
             letter-spacing: 2px;
@@ -91,20 +89,22 @@ class UserSystem {
             align-items: center;
             gap: 15px;
             cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 30px;
+            padding: 8px 15px;
+            border-radius: 40px;
             transition: background 0.3s;
+            background: ${this.currentUser ? '#2a2a2a' : '#333333'};
+            border: 2px solid ${this.currentUser ? '#ffd700' : '#555555'};
         `;
 
-        // Обновляем информацию о пользователе
+        // Обновляем информацию
         this.updateUserInfo(userInfo);
 
         userInfo.addEventListener('mouseenter', () => {
-            userInfo.style.background = '#333333';
+            userInfo.style.background = '#444444';
         });
 
         userInfo.addEventListener('mouseleave', () => {
-            userInfo.style.background = 'transparent';
+            userInfo.style.background = this.currentUser ? '#2a2a2a' : '#333333';
         });
 
         userInfo.addEventListener('click', () => {
@@ -119,7 +119,7 @@ class UserSystem {
         userBar.appendChild(userInfo);
 
         // Добавляем отступ для контента страницы
-        document.body.style.paddingTop = '60px';
+        document.body.style.paddingTop = '70px';
         document.body.insertBefore(userBar, document.body.firstChild);
     }
 
@@ -127,41 +127,40 @@ class UserSystem {
         if (this.currentUser) {
             element.innerHTML = `
                 <div style="
-                    width: 40px;
-                    height: 40px;
+                    width: 45px;
+                    height: 45px;
                     border-radius: 50%;
-                    background: ${this.currentUser.avatar || '#4a4a4a'};
+                    background: #4a4a4a;
                     border: 2px solid #ffd700;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 20px;
-                    overflow: hidden;
+                    font-size: 24px;
                 ">
-                    ${this.currentUser.avatar ? `<img src="${this.currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;">` : '👤'}
+                    ${this.currentUser.avatar || '👤'}
                 </div>
-                <div style="color: white; font-weight: 700;">
+                <div style="color: white; font-weight: 700; font-size: 16px;">
                     ${this.currentUser.username}
                 </div>
-                <div style="color: #ffd700; font-weight: 900;">
+                <div style="color: #ffd700; font-weight: 900; font-size: 18px;">
                     ${this.currentUser.stats?.balance || 500}💰
                 </div>
             `;
         } else {
             element.innerHTML = `
                 <div style="
-                    width: 40px;
-                    height: 40px;
+                    width: 45px;
+                    height: 45px;
                     border-radius: 50%;
                     background: #4a4a4a;
                     border: 2px solid #666666;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 20px;
+                    font-size: 24px;
                 ">👤</div>
-                <div style="color: #999999;">Гость</div>
-                <div style="color: #ffd700;">🔑 Войти</div>
+                <div style="color: #999999; font-size: 16px;">Гость</div>
+                <div style="color: #ffd700; font-size: 16px;">🔑 Войти</div>
             `;
         }
     }
@@ -176,7 +175,7 @@ class UserSystem {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             z-index: 10000;
             display: flex;
             justify-content: center;
@@ -187,8 +186,8 @@ class UserSystem {
         const modal = document.createElement('div');
         modal.style.cssText = `
             background: #2a2a2a;
-            border-radius: 30px;
-            padding: 30px;
+            border-radius: 40px;
+            padding: 40px;
             max-width: 400px;
             width: 90%;
             border: 3px solid #ffd700;
@@ -206,59 +205,29 @@ class UserSystem {
             background: none;
             border: none;
             color: #999999;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
         `;
+        closeBtn.onmouseover = () => closeBtn.style.background = '#444444';
+        closeBtn.onmouseout = () => closeBtn.style.background = 'none';
         closeBtn.onclick = () => overlay.remove();
 
         // Заголовок
         const title = document.createElement('h2');
         title.style.cssText = `
             color: #ffd700;
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 30px;
             text-align: center;
         `;
-        title.innerHTML = '🚌 ВОЙТИ';
-
-        // Табы
-        const tabs = document.createElement('div');
-        tabs.style.cssText = `
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        `;
-
-        const loginTab = document.createElement('button');
-        loginTab.innerHTML = 'ВХОД';
-        loginTab.style.cssText = `
-            flex: 1;
-            padding: 15px;
-            background: #3a3a3a;
-            border: none;
-            border-radius: 30px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            border: 2px solid #6a6a6a;
-        `;
-
-        const registerTab = document.createElement('button');
-        registerTab.innerHTML = 'РЕГИСТРАЦИЯ';
-        registerTab.style.cssText = `
-            flex: 1;
-            padding: 15px;
-            background: #2a4a2a;
-            border: none;
-            border-radius: 30px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-            border: 2px solid #4a9a4a;
-        `;
-
-        tabs.appendChild(loginTab);
-        tabs.appendChild(registerTab);
+        title.innerHTML = '🚌 ВОКЗАЛ №69';
 
         // Контейнер для форм
         const formContainer = document.createElement('div');
@@ -266,32 +235,14 @@ class UserSystem {
 
         modal.appendChild(closeBtn);
         modal.appendChild(title);
-        modal.appendChild(tabs);
         modal.appendChild(formContainer);
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
 
-        // Показываем форму входа по умолчанию
+        // Показываем форму входа
         this.showLoginForm(formContainer);
 
-        // Обработчики табов
-        loginTab.addEventListener('click', () => {
-            loginTab.style.background = '#3a3a3a';
-            loginTab.style.borderColor = '#6a6a6a';
-            registerTab.style.background = '#2a4a2a';
-            registerTab.style.borderColor = '#4a9a4a';
-            this.showLoginForm(formContainer);
-        });
-
-        registerTab.addEventListener('click', () => {
-            registerTab.style.background = '#3a3a3a';
-            registerTab.style.borderColor = '#6a6a6a';
-            loginTab.style.background = '#2a4a2a';
-            loginTab.style.borderColor = '#4a9a4a';
-            this.showRegisterForm(formContainer);
-        });
-
-        // Добавляем стили для анимации
+        // Добавляем стили
         const style = document.createElement('style');
         style.innerHTML = `
             @keyframes modalAppear {
@@ -305,6 +256,34 @@ class UserSystem {
     showLoginForm(container) {
         container.innerHTML = `
             <div style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button id="loginTabBtn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: #4CAF50;
+                        border: none;
+                        border-radius: 30px;
+                        color: white;
+                        font-weight: 700;
+                        font-size: 18px;
+                        cursor: pointer;
+                        border: 2px solid #8bc34a;
+                    ">🔑 ВХОД</button>
+                    
+                    <button id="registerTabBtn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: #3a3a3a;
+                        border: none;
+                        border-radius: 30px;
+                        color: white;
+                        font-weight: 700;
+                        font-size: 18px;
+                        cursor: pointer;
+                        border: 2px solid #666666;
+                    ">📝 РЕГИСТРАЦИЯ</button>
+                </div>
+                
                 <input type="text" id="loginLogin" placeholder="Логин" style="
                     width: 100%;
                     padding: 15px;
@@ -313,41 +292,51 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 16px;
+                    font-size: 18px;
                 ">
                 
                 <input type="password" id="loginPassword" placeholder="Пароль" style="
                     width: 100%;
                     padding: 15px;
-                    margin-bottom: 20px;
+                    margin-bottom: 25px;
                     background: #1a1a1a;
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 16px;
+                    font-size: 18px;
                 ">
                 
                 <button id="loginSubmit" style="
                     width: 100%;
-                    padding: 15px;
+                    padding: 18px;
                     background: #4CAF50;
                     border: none;
                     border-radius: 30px;
                     color: white;
                     font-weight: 700;
-                    font-size: 18px;
+                    font-size: 20px;
                     cursor: pointer;
                     transition: all 0.3s;
                 ">🚪 ВОЙТИ</button>
             </div>
         `;
 
+        // Обработчики табов
+        document.getElementById('loginTabBtn')?.addEventListener('click', () => {
+            this.showLoginForm(container);
+        });
+
+        document.getElementById('registerTabBtn')?.addEventListener('click', () => {
+            this.showRegisterForm(container);
+        });
+
+        // Обработчик входа
         document.getElementById('loginSubmit')?.addEventListener('click', () => {
             const login = document.getElementById('loginLogin')?.value;
             const password = document.getElementById('loginPassword')?.value;
             
             if (!login || !password) {
-                alert('Заполните все поля!');
+                alert('❌ Заполните все поля!');
                 return;
             }
             
@@ -356,7 +345,7 @@ class UserSystem {
             
             if (result.success) {
                 document.getElementById('authOverlay')?.remove();
-                this.updateUserInfo(document.getElementById('userInfo'));
+                this.createUserBar(); // Пересоздаем панель
                 window.location.reload();
             }
         });
@@ -365,6 +354,34 @@ class UserSystem {
     showRegisterForm(container) {
         container.innerHTML = `
             <div style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button id="loginTabBtn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: #3a3a3a;
+                        border: none;
+                        border-radius: 30px;
+                        color: white;
+                        font-weight: 700;
+                        font-size: 18px;
+                        cursor: pointer;
+                        border: 2px solid #666666;
+                    ">🔑 ВХОД</button>
+                    
+                    <button id="registerTabBtn" style="
+                        flex: 1;
+                        padding: 15px;
+                        background: #4CAF50;
+                        border: none;
+                        border-radius: 30px;
+                        color: white;
+                        font-weight: 700;
+                        font-size: 18px;
+                        cursor: pointer;
+                        border: 2px solid #8bc34a;
+                    ">📝 РЕГИСТРАЦИЯ</button>
+                </div>
+                
                 <input type="text" id="regUsername" placeholder="Отображаемое имя" style="
                     width: 100%;
                     padding: 15px;
@@ -373,7 +390,7 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 16px;
+                    font-size: 18px;
                 ">
                 
                 <input type="text" id="regLogin" placeholder="Логин" style="
@@ -384,47 +401,57 @@ class UserSystem {
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 16px;
+                    font-size: 18px;
                 ">
                 
                 <input type="password" id="regPassword" placeholder="Пароль" style="
                     width: 100%;
                     padding: 15px;
-                    margin-bottom: 20px;
+                    margin-bottom: 25px;
                     background: #1a1a1a;
                     border: 2px solid #3a3a3a;
                     border-radius: 30px;
                     color: white;
-                    font-size: 16px;
+                    font-size: 18px;
                 ">
                 
                 <button id="registerSubmit" style="
                     width: 100%;
-                    padding: 15px;
+                    padding: 18px;
                     background: #4CAF50;
                     border: none;
                     border-radius: 30px;
                     color: white;
                     font-weight: 700;
-                    font-size: 18px;
+                    font-size: 20px;
                     cursor: pointer;
                     transition: all 0.3s;
                 ">📝 ЗАРЕГИСТРИРОВАТЬСЯ</button>
             </div>
         `;
 
+        // Обработчики табов
+        document.getElementById('loginTabBtn')?.addEventListener('click', () => {
+            this.showLoginForm(container);
+        });
+
+        document.getElementById('registerTabBtn')?.addEventListener('click', () => {
+            this.showRegisterForm(container);
+        });
+
+        // Обработчик регистрации
         document.getElementById('registerSubmit')?.addEventListener('click', () => {
             const username = document.getElementById('regUsername')?.value;
             const login = document.getElementById('regLogin')?.value;
             const password = document.getElementById('regPassword')?.value;
             
             if (!username || !login || !password) {
-                alert('Заполните все поля!');
+                alert('❌ Заполните все поля!');
                 return;
             }
             
             if (password.length < 3) {
-                alert('Пароль должен быть не менее 3 символов');
+                alert('❌ Пароль должен быть не менее 3 символов');
                 return;
             }
             
@@ -433,7 +460,7 @@ class UserSystem {
             
             if (result.success) {
                 document.getElementById('authOverlay')?.remove();
-                this.updateUserInfo(document.getElementById('userInfo'));
+                this.createUserBar(); // Пересоздаем панель
                 window.location.reload();
             }
         });
@@ -441,21 +468,19 @@ class UserSystem {
 
     register(username, login, password) {
         if (!username || !login || !password) {
-            return { success: false, message: 'Заполните все поля!' };
+            return { success: false, message: '❌ Заполните все поля!' };
         }
 
         if (password.length < 3) {
-            return { success: false, message: 'Пароль должен быть не менее 3 символов' };
+            return { success: false, message: '❌ Пароль должен быть не менее 3 символов' };
         }
 
         if (this.users[login]) {
-            return { success: false, message: 'Пользователь с таким логином уже существует' };
+            return { success: false, message: '❌ Пользователь с таким логином уже существует' };
         }
 
-        // Выбираем случайный аватар
-        const avatars = [
-            '👨‍🦰', '👩', '👨‍🦳', '👩‍🦰', '👴', '👵', '🧔', '🧑‍🦰'
-        ];
+        // Список аватаров
+        const avatars = ['👨', '👩', '👨‍🦰', '👩‍🦰', '👴', '👵', '🧔', '🧑', '👨‍🦳', '👩‍🦳'];
         const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
 
         const newUser = {
@@ -515,11 +540,11 @@ class UserSystem {
     login(login, password) {
         const user = this.users[login];
         if (!user) {
-            return { success: false, message: 'Пользователь не найден' };
+            return { success: false, message: '❌ Пользователь не найден' };
         }
 
         if (user.password !== this.hashPassword(password)) {
-            return { success: false, message: 'Неверный пароль' };
+            return { success: false, message: '❌ Неверный пароль' };
         }
 
         user.lastLogin = new Date().toISOString();
@@ -541,7 +566,7 @@ class UserSystem {
         // Загружаем данные пользователя в игру
         this.loadUserDataToGame();
         
-        return { success: true, message: 'Вход выполнен успешно' };
+        return { success: true, message: '✅ Вход выполнен успешно!' };
     }
 
     logout() {
@@ -562,10 +587,10 @@ class UserSystem {
     }
 
     updateStreak(user) {
+        if (!user.dailyTasks) return;
+        
         const today = new Date().toDateString();
         const lastLogin = user.dailyTasks?.streak?.lastLogin;
-        
-        if (!user.dailyTasks) return;
 
         if (lastLogin !== today) {
             if (lastLogin) {
@@ -650,7 +675,7 @@ class UserSystem {
     }
 
     changeAvatar(avatar) {
-        if (!this.currentUser) return;
+        if (!this.currentUser) return false;
 
         try {
             const user = this.users[this.currentUser.login];
@@ -662,7 +687,8 @@ class UserSystem {
                 localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
                 
                 // Обновляем отображение
-                this.updateUserInfo(document.getElementById('userInfo'));
+                const userInfo = document.getElementById('userInfo');
+                if (userInfo) this.updateUserInfo(userInfo);
                 
                 return true;
             }
