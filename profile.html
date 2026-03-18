@@ -82,12 +82,14 @@
             font-size: 28px;
             font-weight: 900;
             margin-bottom: 5px;
+            word-break: break-word;
         }
         
         .login {
             color: #9a9a9a;
             font-size: 16px;
             margin-bottom: 10px;
+            word-break: break-word;
         }
         
         .joined {
@@ -161,11 +163,17 @@
             border: 2px solid #6a6a6a;
             cursor: pointer;
             margin-top: 20px;
+            transition: all 0.3s;
         }
         
         .back-button:active {
             transform: translateY(4px);
             box-shadow: 0 3px 0 #1a1a1a;
+        }
+        
+        .back-button:hover {
+            background: #3a3a3a;
+            border-color: #c0c0c0;
         }
         
         .despair-meter {
@@ -182,6 +190,13 @@
             font-weight: 900;
             margin-bottom: 10px;
             text-align: center;
+        }
+        
+        .error-message {
+            color: #ff8888;
+            font-size: 20px;
+            text-align: center;
+            padding: 40px;
         }
     </style>
 </head>
@@ -209,72 +224,90 @@
     <script src="auth-system.js"></script>
     <script>
         function loadProfile() {
-            const user = window.userSystem.currentUser;
+            const user = window.userSystem?.currentUser;
             const header = document.getElementById('profileHeader');
             const statsGrid = document.getElementById('statsGrid');
+            const despairMeter = document.getElementById('despairMeter');
             
             if (!user) {
-                header.innerHTML = `
-                    <div style="color: #ff8888; font-size: 20px; padding: 40px;">
-                        ❌ Войдите в систему
-                    </div>
-                `;
-                document.getElementById('despairMeter').style.display = 'none';
+                if (header) {
+                    header.innerHTML = '<div class="error-message">❌ Войдите в систему</div>';
+                }
+                if (statsGrid) statsGrid.innerHTML = '';
+                if (despairMeter) despairMeter.style.display = 'none';
                 return;
             }
             
-            const stats = user.stats;
+            const stats = user.stats || {};
             
             // Заголовок профиля
-            header.innerHTML = `
-                <div class="avatar">👤</div>
-                <div class="username">${user.username}</div>
-                <div class="login">@${user.login}</div>
-                <div class="joined">Присоединился: ${new Date(stats.registeredAt || Date.now()).toLocaleDateString('ru-RU')}</div>
-            `;
+            if (header) {
+                header.innerHTML = `
+                    <div class="avatar">👤</div>
+                    <div class="username">${escapeHtml(user.username || 'Пользователь')}</div>
+                    <div class="login">@${escapeHtml(user.login || 'unknown')}</div>
+                    <div class="joined">Присоединился: ${new Date().toLocaleDateString('ru-RU')}</div>
+                `;
+            }
             
             // Статистика
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-label">Монеты</div>
-                    <div class="stat-value">${stats.balance}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🔄</div>
-                    <div class="stat-label">Перерождений</div>
-                    <div class="stat-value">${stats.rebornLevel}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📊</div>
-                    <div class="stat-label">Разряд</div>
-                    <div class="stat-value">${stats.playerLevel}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">👆</div>
-                    <div class="stat-label">Кликов</div>
-                    <div class="stat-value small">${stats.totalClicks || 0}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🛒</div>
-                    <div class="stat-label">Покупок</div>
-                    <div class="stat-value small">${stats.totalPurchases || 0}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🥟</div>
-                    <div class="stat-label">Еды куплено</div>
-                    <div class="stat-value small">${stats.foodPurchased || 0}</div>
-                </div>
-            `;
+            if (statsGrid) {
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Монеты</div>
+                        <div class="stat-value">${stats.balance || 500}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-label">Перерождений</div>
+                        <div class="stat-value">${stats.rebornLevel || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-label">Разряд</div>
+                        <div class="stat-value">${stats.playerLevel || 1}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👆</div>
+                        <div class="stat-label">Кликов</div>
+                        <div class="stat-value small">${stats.totalClicks || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🛒</div>
+                        <div class="stat-label">Покупок</div>
+                        <div class="stat-value small">${stats.totalPurchases || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🥟</div>
+                        <div class="stat-label">Еды куплено</div>
+                        <div class="stat-value small">${stats.foodPurchased || 0}</div>
+                    </div>
+                `;
+            }
             
             // Уровень отчаяния
-            const despair = Math.min(stats.rebornLevel * 5, 100);
-            document.getElementById('despairProgress').style.width = `${despair}%`;
-            document.getElementById('despairValue').innerText = `${despair}%`;
+            if (despairMeter) {
+                despairMeter.style.display = 'block';
+                const despair = Math.min((stats.rebornLevel || 0) * 5, 100);
+                const progressBar = document.getElementById('despairProgress');
+                const despairValue = document.getElementById('despairValue');
+                
+                if (progressBar) progressBar.style.width = `${despair}%`;
+                if (despairValue) despairValue.innerText = `${despair}%`;
+            }
+        }
+        
+        // Экранирование HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Загружаем профиль
-        loadProfile();
+        setTimeout(loadProfile, 100);
         
         // Обновляем каждые 5 секунд
         setInterval(loadProfile, 5000);

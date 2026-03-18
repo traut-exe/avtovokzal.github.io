@@ -1,5 +1,4 @@
-
-    // ========== СИСТЕМА РЕГИСТРАЦИИ И ПРОФИЛЕЙ ==========
+// ========== СИСТЕМА РЕГИСТРАЦИИ И ПРОФИЛЕЙ ==========
 
 // Класс для работы с пользователями
 class UserSystem {
@@ -11,27 +10,57 @@ class UserSystem {
 
     // Загрузка пользователей из localStorage
     loadUsers() {
-        const users = localStorage.getItem('vokzalUsers');
-        return users ? JSON.parse(users) : {};
+        try {
+            const users = localStorage.getItem('vokzalUsers');
+            return users ? JSON.parse(users) : {};
+        } catch (e) {
+            console.error('Ошибка загрузки пользователей:', e);
+            return {};
+        }
     }
 
     // Сохранение пользователей
     saveUsers() {
-        localStorage.setItem('vokzalUsers', JSON.stringify(this.users));
+        try {
+            localStorage.setItem('vokzalUsers', JSON.stringify(this.users));
+        } catch (e) {
+            console.error('Ошибка сохранения пользователей:', e);
+        }
     }
 
     // Инициализация
     init() {
         // Проверяем, есть ли текущий пользователь
-        const savedUser = localStorage.getItem('vokzalCurrentUser');
-        if (savedUser) {
-            this.currentUser = JSON.parse(savedUser);
+        try {
+            const savedUser = localStorage.getItem('vokzalCurrentUser');
+            if (savedUser) {
+                this.currentUser = JSON.parse(savedUser);
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки текущего пользователя:', e);
+            this.currentUser = null;
         }
-        this.updateUIBasedOnAuth();
+        
+        // Ждем загрузки DOM и обновляем интерфейс
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.updateUIBasedOnAuth());
+        } else {
+            setTimeout(() => this.updateUIBasedOnAuth(), 100);
+        }
     }
 
     // Регистрация нового пользователя
     register(username, login, password) {
+        // Проверка на пустые поля
+        if (!username || !login || !password) {
+            return { success: false, message: 'Заполните все поля!' };
+        }
+
+        // Проверка длины пароля
+        if (password.length < 3) {
+            return { success: false, message: 'Пароль должен быть не менее 3 символов' };
+        }
+
         // Проверяем, не занят ли логин
         if (this.users[login]) {
             return { success: false, message: 'Пользователь с таким логином уже существует' };
@@ -41,7 +70,7 @@ class UserSystem {
         const newUser = {
             username: username,
             login: login,
-            password: this.hashPassword(password), // Простое хеширование
+            password: this.hashPassword(password),
             registeredAt: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
             stats: {
@@ -52,9 +81,16 @@ class UserSystem {
                 totalPurchases: 0,
                 totalEarned: 500,
                 foodPurchased: 0,
-                despairLevel: 0 // уровень отчаяния
+                despairLevel: 0
             },
             gameData: {
+                balance: 500,
+                rebornLevel: 0,
+                playerLevel: 1,
+                totalClicks: 0,
+                totalPurchases: 0,
+                totalEarned: 500,
+                foodPurchased: 0,
                 belyashCount: 0,
                 samsaCount: 0,
                 cheburekCount: 0,
@@ -83,9 +119,7 @@ class UserSystem {
         this.saveUsers();
         
         // Автоматически входим после регистрации
-        this.login(login, password);
-        
-        return { success: true, message: 'Регистрация успешна!' };
+        return this.login(login, password);
     }
 
     // Вход в систему
@@ -101,6 +135,10 @@ class UserSystem {
 
         // Обновляем время последнего входа
         user.lastLogin = new Date().toISOString();
+        
+        // Обновляем streak при входе
+        this.updateStreak(user);
+        
         this.users[login] = user;
         this.saveUsers();
 
@@ -120,6 +158,49 @@ class UserSystem {
         return { success: true, message: 'Вход выполнен успешно' };
     }
 
+    // Обновление streak при входе
+    updateStreak(user) {
+        const today = new Date().toDateString();
+        const lastLogin = user.dailyTasks?.streak?.lastLogin;
+        
+        if (!user.dailyTasks) {
+            user.dailyTasks = {
+                lastReset: today,
+                tasks: {
+                    task1: { progress: 0, completed: false, claimed: false },
+                    task2: { progress: 0, completed: false, claimed: false },
+                    task3: { progress: 0, completed: false, claimed: false },
+                    task4: { progress: 0, completed: false, claimed: false }
+                },
+                streak: {
+                    count: 1,
+                    lastLogin: today,
+                    bonusClaimed: false
+                }
+            };
+            return;
+        }
+
+        if (lastLogin !== today) {
+            if (lastLogin) {
+                const lastDate = new Date(lastLogin);
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                if (lastDate.toDateString() === yesterday.toDateString()) {
+                    user.dailyTasks.streak.count = Math.min((user.dailyTasks.streak.count || 0) + 1, 7);
+                } else {
+                    user.dailyTasks.streak.count = 1;
+                }
+            } else {
+                user.dailyTasks.streak.count = 1;
+            }
+            
+            user.dailyTasks.streak.lastLogin = today;
+            user.dailyTasks.streak.bonusClaimed = false;
+        }
+    }
+
     // Выход из системы
     logout() {
         // Сохраняем текущие данные игры перед выходом
@@ -132,7 +213,7 @@ class UserSystem {
         window.location.reload();
     }
 
-    // Простое хеширование пароля (для демо, в реальном проекте используйте bcrypt)
+    // Простое хеширование пароля
     hashPassword(password) {
         let hash = 0;
         for (let i = 0; i < password.length; i++) {
@@ -147,24 +228,31 @@ class UserSystem {
     saveGameDataToUser() {
         if (!this.currentUser) return;
 
-        // Получаем текущие данные игры из localStorage
-        const gameData = JSON.parse(localStorage.getItem('vokzalGameData') || '{}');
-        const dailyData = JSON.parse(localStorage.getItem('dailyTasksData') || '{}');
+        try {
+            // Получаем текущие данные игры из localStorage
+            const gameDataStr = localStorage.getItem('vokzalGameData');
+            const gameData = gameDataStr ? JSON.parse(gameDataStr) : {};
+            
+            const dailyDataStr = localStorage.getItem('dailyTasksData');
+            const dailyData = dailyDataStr ? JSON.parse(dailyDataStr) : {};
 
-        // Обновляем статистику пользователя
-        const user = this.users[this.currentUser.login];
-        if (user) {
-            user.stats = {
-                ...user.stats,
-                ...gameData
-            };
-            user.gameData = gameData;
-            user.dailyTasks = dailyData;
-            
-            // Обновляем уровень отчаяния (чем больше перерождений, тем выше)
-            user.stats.despairLevel = Math.min(user.stats.rebornLevel * 10, 100);
-            
-            this.saveUsers();
+            // Обновляем статистику пользователя
+            const user = this.users[this.currentUser.login];
+            if (user) {
+                user.stats = {
+                    ...user.stats,
+                    ...gameData
+                };
+                user.gameData = gameData;
+                user.dailyTasks = dailyData;
+                
+                // Обновляем уровень отчаяния
+                user.stats.despairLevel = Math.min((user.stats.rebornLevel || 0) * 5, 100);
+                
+                this.saveUsers();
+            }
+        } catch (e) {
+            console.error('Ошибка сохранения данных:', e);
         }
     }
 
@@ -172,15 +260,19 @@ class UserSystem {
     loadUserDataToGame() {
         if (!this.currentUser) return;
 
-        const user = this.users[this.currentUser.login];
-        if (user) {
-            // Сохраняем данные в localStorage для игры
-            localStorage.setItem('vokzalGameData', JSON.stringify(user.gameData));
-            localStorage.setItem('dailyTasksData', JSON.stringify(user.dailyTasks));
-            
-            // Обновляем статистику в текущем пользователе
-            this.currentUser.stats = user.stats;
-            this.currentUser.gameData = user.gameData;
+        try {
+            const user = this.users[this.currentUser.login];
+            if (user) {
+                // Сохраняем данные в localStorage для игры
+                localStorage.setItem('vokzalGameData', JSON.stringify(user.gameData));
+                localStorage.setItem('dailyTasksData', JSON.stringify(user.dailyTasks));
+                
+                // Обновляем статистику в текущем пользователе
+                this.currentUser.stats = user.stats;
+                this.currentUser.gameData = user.gameData;
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки данных:', e);
         }
     }
 
@@ -188,18 +280,22 @@ class UserSystem {
     updateGameData(newData) {
         if (!this.currentUser) return;
 
-        const user = this.users[this.currentUser.login];
-        if (user) {
-            user.gameData = { ...user.gameData, ...newData };
-            user.stats = { ...user.stats, ...newData };
-            user.stats.despairLevel = Math.min(user.stats.rebornLevel * 10, 100);
-            
-            this.saveUsers();
-            
-            // Обновляем текущего пользователя
-            this.currentUser.stats = user.stats;
-            this.currentUser.gameData = user.gameData;
-            localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
+        try {
+            const user = this.users[this.currentUser.login];
+            if (user) {
+                user.gameData = { ...user.gameData, ...newData };
+                user.stats = { ...user.stats, ...newData };
+                user.stats.despairLevel = Math.min((user.stats.rebornLevel || 0) * 5, 100);
+                
+                this.saveUsers();
+                
+                // Обновляем текущего пользователя
+                this.currentUser.stats = user.stats;
+                this.currentUser.gameData = user.gameData;
+                localStorage.setItem('vokzalCurrentUser', JSON.stringify(this.currentUser));
+            }
+        } catch (e) {
+            console.error('Ошибка обновления данных:', e);
         }
     }
 
@@ -211,7 +307,6 @@ class UserSystem {
 
     // Обновление интерфейса в зависимости от авторизации
     updateUIBasedOnAuth() {
-        // Этот метод будет вызываться на каждой странице
         const userSection = document.getElementById('userSection');
         if (!userSection) return;
 
@@ -220,10 +315,105 @@ class UserSystem {
         } else {
             userSection.innerHTML = this.getLoginUI();
         }
+        
+        // Переназначаем обработчики
+        this.setupEventHandlers();
+    }
+
+    // Настройка обработчиков событий
+    setupEventHandlers() {
+        // Выход
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => this.logout());
+        }
+        
+        // Показ окна входа
+        const showLoginBtn = document.getElementById('showLoginBtn');
+        const loginModal = document.getElementById('loginModal');
+        if (showLoginBtn && loginModal) {
+            showLoginBtn.addEventListener('click', () => {
+                loginModal.style.display = 'flex';
+            });
+        }
+        
+        // Закрытие окна входа
+        const loginClose = document.getElementById('loginClose');
+        if (loginClose && loginModal) {
+            loginClose.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+            });
+        }
+        
+        // Показ окна регистрации
+        const showRegisterBtn = document.getElementById('showRegisterBtn');
+        const registerModal = document.getElementById('registerModal');
+        if (showRegisterBtn && registerModal) {
+            showRegisterBtn.addEventListener('click', () => {
+                registerModal.style.display = 'flex';
+            });
+        }
+        
+        // Закрытие окна регистрации
+        const registerClose = document.getElementById('registerClose');
+        if (registerClose && registerModal) {
+            registerClose.addEventListener('click', () => {
+                registerModal.style.display = 'none';
+            });
+        }
+        
+        // Обработка входа
+        const loginSubmit = document.getElementById('loginSubmit');
+        if (loginSubmit) {
+            loginSubmit.addEventListener('click', () => {
+                const login = document.getElementById('loginLogin')?.value;
+                const password = document.getElementById('loginPassword')?.value;
+                
+                if (!login || !password) {
+                    alert('Заполните все поля!');
+                    return;
+                }
+                
+                const result = this.login(login, password);
+                alert(result.message);
+                
+                if (result.success) {
+                    const modal = document.getElementById('loginModal');
+                    if (modal) modal.style.display = 'none';
+                    window.location.reload();
+                }
+            });
+        }
+        
+        // Обработка регистрации
+        const registerSubmit = document.getElementById('registerSubmit');
+        if (registerSubmit) {
+            registerSubmit.addEventListener('click', () => {
+                const username = document.getElementById('regUsername')?.value;
+                const login = document.getElementById('regLogin')?.value;
+                const password = document.getElementById('regPassword')?.value;
+                
+                if (!username || !login || !password) {
+                    alert('Заполните все поля!');
+                    return;
+                }
+                
+                const result = this.register(username, login, password);
+                alert(result.message);
+                
+                if (result.success) {
+                    const modal = document.getElementById('registerModal');
+                    if (modal) modal.style.display = 'none';
+                    window.location.reload();
+                }
+            });
+        }
     }
 
     // HTML для залогиненного пользователя
     getLoggedInUI() {
+        const stats = this.currentUser?.stats || { balance: 500, rebornLevel: 0, playerLevel: 1, despairLevel: 0 };
+        
         return `
             <div style="
                 background: #2a2a2a;
@@ -246,8 +436,8 @@ class UserSystem {
                         font-size: 30px;
                     ">👤</div>
                     <div style="flex: 1;">
-                        <div style="color: #ffd700; font-size: 20px; font-weight: 900;">${this.currentUser.username}</div>
-                        <div style="color: #9a9a9a; font-size: 14px;">${this.currentUser.login}</div>
+                        <div style="color: #ffd700; font-size: 20px; font-weight: 900;">${this.escapeHtml(this.currentUser.username)}</div>
+                        <div style="color: #9a9a9a; font-size: 14px;">@${this.escapeHtml(this.currentUser.login)}</div>
                     </div>
                     <button id="logoutBtn" style="
                         background: #4a2a2a;
@@ -270,19 +460,19 @@ class UserSystem {
                 ">
                     <div style="background: #1e1e1e; border-radius: 20px; padding: 10px; text-align: center; border: 1px solid #3a3a3a;">
                         <div style="color: #9a9a9a; font-size: 12px;">💰 Монеты</div>
-                        <div style="color: #ffd700; font-size: 20px; font-weight: 900;">${this.currentUser.stats.balance}</div>
+                        <div style="color: #ffd700; font-size: 20px; font-weight: 900;">${stats.balance}</div>
                     </div>
                     <div style="background: #1e1e1e; border-radius: 20px; padding: 10px; text-align: center; border: 1px solid #3a3a3a;">
                         <div style="color: #9a9a9a; font-size: 12px;">🔄 Перерождений</div>
-                        <div style="color: #ffaa00; font-size: 20px; font-weight: 900;">${this.currentUser.stats.rebornLevel}</div>
+                        <div style="color: #ffaa00; font-size: 20px; font-weight: 900;">${stats.rebornLevel}</div>
                     </div>
                     <div style="background: #1e1e1e; border-radius: 20px; padding: 10px; text-align: center; border: 1px solid #3a3a3a;">
                         <div style="color: #9a9a9a; font-size: 12px;">📊 Разряд</div>
-                        <div style="color: #4CAF50; font-size: 20px; font-weight: 900;">${this.currentUser.stats.playerLevel}</div>
+                        <div style="color: #4CAF50; font-size: 20px; font-weight: 900;">${stats.playerLevel}</div>
                     </div>
                     <div style="background: #1e1e1e; border-radius: 20px; padding: 10px; text-align: center; border: 1px solid #3a3a3a;">
                         <div style="color: #9a9a9a; font-size: 12px;">😫 Отчаяние</div>
-                        <div style="color: #8b0000; font-size: 20px; font-weight: 900;">${this.currentUser.stats.despairLevel || 0}%</div>
+                        <div style="color: #8b0000; font-size: 20px; font-weight: 900;">${stats.despairLevel || 0}%</div>
                     </div>
                 </div>
                 
@@ -362,7 +552,7 @@ class UserSystem {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0,0,0,0.9);
+                background: rgba(0,0,0,0.95);
                 z-index: 10000;
                 display: none;
                 justify-content: center;
@@ -433,7 +623,7 @@ class UserSystem {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0,0,0,0.9);
+                background: rgba(0,0,0,0.95);
                 z-index: 10000;
                 display: none;
                 justify-content: center;
@@ -509,129 +699,28 @@ class UserSystem {
             </div>
         `;
     }
+
+    // Экранирование HTML для безопасности
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 }
 
 // Создаем глобальный экземпляр
 window.userSystem = new UserSystem();
 
-// Инициализация обработчиков
-document.addEventListener('DOMContentLoaded', () => {
-    // Добавляем секцию пользователя в начало каждой страницы
-    const container = document.querySelector('.game-container');
-    if (container) {
-        const userSection = document.createElement('div');
-        userSection.id = 'userSection';
-        container.insertBefore(userSection, container.firstChild);
-    }
-    
-    // Обновляем интерфейс
-    window.userSystem.updateUIBasedOnAuth();
-    
-    // Обработчики для модальных окон
-    setupModalHandlers();
-});
-
-// Настройка обработчиков модальных окон
-function setupModalHandlers() {
-    // Показ окна входа
-    const showLoginBtn = document.getElementById('showLoginBtn');
-    const loginModal = document.getElementById('loginModal');
-    const loginClose = document.getElementById('loginClose');
-    
-    if (showLoginBtn && loginModal) {
-        showLoginBtn.addEventListener('click', () => {
-            loginModal.style.display = 'flex';
-        });
-    }
-    
-    if (loginClose && loginModal) {
-        loginClose.addEventListener('click', () => {
-            loginModal.style.display = 'none';
-        });
-    }
-    
-    // Показ окна регистрации
-    const showRegisterBtn = document.getElementById('showRegisterBtn');
-    const registerModal = document.getElementById('registerModal');
-    const registerClose = document.getElementById('registerClose');
-    
-    if (showRegisterBtn && registerModal) {
-        showRegisterBtn.addEventListener('click', () => {
-            registerModal.style.display = 'flex';
-        });
-    }
-    
-    if (registerClose && registerModal) {
-        registerClose.addEventListener('click', () => {
-            registerModal.style.display = 'none';
-        });
-    }
-    
-    // Обработка входа
-    const loginSubmit = document.getElementById('loginSubmit');
-    if (loginSubmit) {
-        loginSubmit.addEventListener('click', () => {
-            const login = document.getElementById('loginLogin').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            if (!login || !password) {
-                alert('Заполните все поля!');
-                return;
-            }
-            
-            const result = window.userSystem.login(login, password);
-            alert(result.message);
-            
-            if (result.success) {
-                loginModal.style.display = 'none';
-                window.location.reload();
-            }
-        });
-    }
-    
-    // Обработка регистрации
-    const registerSubmit = document.getElementById('registerSubmit');
-    if (registerSubmit) {
-        registerSubmit.addEventListener('click', () => {
-            const username = document.getElementById('regUsername').value;
-            const login = document.getElementById('regLogin').value;
-            const password = document.getElementById('regPassword').value;
-            
-            if (!username || !login || !password) {
-                alert('Заполните все поля!');
-                return;
-            }
-            
-            if (password.length < 3) {
-                alert('Пароль должен быть не менее 3 символов');
-                return;
-            }
-            
-            const result = window.userSystem.register(username, login, password);
-            alert(result.message);
-            
-            if (result.success) {
-                registerModal.style.display = 'none';
-                window.location.reload();
-            }
-        });
-    }
-    
-    // Обработка выхода
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            window.userSystem.logout();
-        });
-    }
-}
-
-// Функция для сохранения данных игры (вызывать при каждом действии)
+// Функция для сохранения прогресса (будет вызываться из других файлов)
 window.saveGameProgress = function() {
     if (window.userSystem && window.userSystem.currentUser) {
-        // Получаем текущие данные игры
-        const gameData = JSON.parse(localStorage.getItem('vokzalGameData') || '{}');
-        window.userSystem.updateGameData(gameData);
+        try {
+            const gameDataStr = localStorage.getItem('vokzalGameData');
+            const gameData = gameDataStr ? JSON.parse(gameDataStr) : {};
+            window.userSystem.updateGameData(gameData);
+        } catch (e) {
+            console.error('Ошибка сохранения прогресса:', e);
+        }
     }
 };
 
