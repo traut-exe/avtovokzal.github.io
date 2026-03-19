@@ -95,7 +95,7 @@
         }
         
         .game-container::before {
-            content: "ЭПОКСИДНЫЙ ПРОЕЗД PROJECT";
+            content: "ЭПОКСИДОВСКИЙ ПРОЕЗД PROJECT";
             position: absolute;
             top: -10px;
             left: 50%;
@@ -247,12 +247,13 @@
         .bus-icon {
             font-size: 40px;
             color: #ffffff;
-            font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+            font-family: "Georgia", serif;
             filter: drop-shadow(0 7px 3px #f0efef);
             margin: 1   ;
             opacity: 1;
             animation: busShake 3s ease-in-out infinite;
         }
+        
         
         @keyframes busShake {
             0%, 100% { transform: translateY(0); }
@@ -1174,7 +1175,7 @@ setTimeout(checkDailyTasks, 500);
                 <span class="perk-badge" id="nextRebornCost">цена: 2000</span>
             </div>
             <div class="reborn-requirement" id="rebornRequirement">
-                ⚠️ нужно 5 разряд
+                ⚠️ нужен 5 уровень отчаяния
             </div>
             <button class="reborn-btn" id="rebornButton">↻ ПЕРЕЗАГРУЗИТЬ ↻</button>
         </div>
@@ -1281,7 +1282,7 @@ initDailySystem();
             notification.style.boxShadow = '0 10px 0 #1a1a1a';
             notification.style.border = '3px solid #8a8a8a';
             notification.style.animation = 'bounce 1.5s forwards';
-            notification.innerHTML = 'РАЗРЯД ПОВЫШЕН!';
+            notification.innerHTML = 'УРОВЕНЬ ОТЧАЯНИЯ ПОВЫШЕН!';
             
             const style = document.createElement('style');
             style.innerHTML = `
@@ -1355,7 +1356,7 @@ initDailySystem();
                 rebornBtn.classList.add('disabled');
                 rebornRequirementSpan.style.color = '#ffa47a';
                 if (playerLevel < 5) {
-                    rebornRequirementSpan.innerHTML = `⚠️ нужно ${playerLevel}/5 разряд`;
+                    rebornRequirementSpan.innerHTML = `⚠️ нужен ${playerLevel}/5 уровень отчаяния`;
                 } else {
                     rebornRequirementSpan.innerHTML = '⚠️ мало ресурсов';
                 }
@@ -1487,7 +1488,7 @@ initDailySystem();
         // ---------- ПЕРЕРОЖДЕНИЕ ----------
         rebornBtn.addEventListener('click', () => {
             let rebornCost = 2000 + rebornLevel * 1000;
-            if (playerLevel < 5) { alert(`❌ Нужен 5 разряд!`); return; }
+            if (playerLevel < 5) { alert(`❌ Нужен 5 уровень отчаяния!`); return; }
             if (balance < rebornCost) { alert('❌ Мало ресурсов!'); return; }
             
             if (confirm('Перезагрузить систему? Получишь +10% навсегда')) {
